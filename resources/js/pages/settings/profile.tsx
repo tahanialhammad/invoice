@@ -112,6 +112,97 @@ export default function Profile({
                                     Save
                                 </Button>
                             </div>
+
+                            <hr className="my-8 border-sidebar-border/70" />
+
+                            <Heading
+                                variant="small"
+                                title="Company information"
+                                description="Details used for your invoice generation"
+                            />
+
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="company_name">Company Name</Label>
+                                    <Input
+                                        id="company_name"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.company_name}
+                                        name="company_name"
+                                        placeholder="Business name"
+                                    />
+                                    <InputError message={errors.company_name} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="company_email">Company Email</Label>
+                                    <Input
+                                        id="company_email"
+                                        type="email"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.company_email}
+                                        name="company_email"
+                                        placeholder="billing@company.com"
+                                    />
+                                    <InputError message={errors.company_email} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="company_phone">Company Phone</Label>
+                                    <Input
+                                        id="company_phone"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.company_phone}
+                                        name="company_phone"
+                                        placeholder="+1..."
+                                    />
+                                    <InputError message={errors.company_phone} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="company_vat_number">VAT Number</Label>
+                                    <Input
+                                        id="company_vat_number"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.company_vat_number}
+                                        name="company_vat_number"
+                                        placeholder="GB12345..."
+                                    />
+                                    <InputError message={errors.company_vat_number} />
+                                </div>
+
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="company_logo_url">Logo URL</Label>
+                                    <Input
+                                        id="company_logo_url"
+                                        className="mt-1 block w-full"
+                                        defaultValue={auth.user.company_logo_url}
+                                        name="company_logo_url"
+                                        placeholder="https://..."
+                                    />
+                                    <InputError message={errors.company_logo_url} />
+                                </div>
+
+                                <div className="grid gap-2 sm:col-span-2">
+                                    <Label htmlFor="company_address">Business Address</Label>
+                                    <textarea
+                                        id="company_address"
+                                        name="company_address"
+                                        defaultValue={auth.user.company_address}
+                                        className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                        placeholder="123 Business St..."
+                                    />
+                                    <InputError message={errors.company_address} />
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-4">
+                                <Button
+                                    disabled={processing}
+                                >
+                                    Save Company Info
+                                </Button>
+                            </div>
                         </>
                     )}
                 </Form>

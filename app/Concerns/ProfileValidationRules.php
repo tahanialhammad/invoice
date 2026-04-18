@@ -18,6 +18,12 @@ trait ProfileValidationRules
         return [
             'name' => $this->nameRules(),
             'email' => $this->emailRules($userId),
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'company_address' => ['nullable', 'string'],
+            'company_email' => ['nullable', 'email', 'max:255'],
+            'company_phone' => ['nullable', 'string', 'max:255'],
+            'company_vat_number' => ['nullable', 'string', 'max:255'],
+            'company_logo_url' => ['nullable', 'url', 'max:255'],
         ];
     }
 

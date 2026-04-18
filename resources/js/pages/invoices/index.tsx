@@ -69,7 +69,15 @@ export default function Index({ invoices }: { invoices: Invoice[] }) {
                                                 {invoice.status}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-3 text-right">
+                                        <td className="px-4 py-3 text-right flex items-center justify-end gap-3">
+                                            <a
+                                                href={invoiceRoutes.pdf(invoice.id).url}
+                                                target="_blank"
+                                                className="text-sm font-medium text-slate-500 hover:text-slate-700 flex items-center gap-1 group"
+                                            >
+                                                <FileText className="size-3 text-slate-400 group-hover:text-slate-600" />
+                                                PDF
+                                            </a>
                                             <Link
                                                 href={invoiceRoutes.edit(invoice.id)}
                                                 className="text-sm font-medium text-blue-500 hover:text-blue-600 underline-offset-4 hover:underline"

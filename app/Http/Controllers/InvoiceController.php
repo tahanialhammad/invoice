@@ -6,9 +6,19 @@ use App\Models\Invoice;
 use App\Models\Client;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Spatie\LaravelPdf\Facades\Pdf;
 
 class InvoiceController extends Controller
 {
+    public function pdf(Invoice $invoice)
+    {
+        $this->authorizeOwner($invoice);
+        
+        return Pdf::view('pdf.invoice', ['invoice' => $invoice->load(['client', 'user'])])
+            ->driver('dompdf')
+            ->format('a4')
+            ->name("invoice-{$invoice->invoice_number}.pdf");
+    }
     public function index()
     {
         return Inertia::render('invoices/index', [

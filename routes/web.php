@@ -50,6 +50,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('dashboard');
 
     Route::resource('clients', \App\Http\Controllers\ClientController::class);
+    Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'pdf'])->name('invoices.pdf');
     Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
 });
 
