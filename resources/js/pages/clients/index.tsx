@@ -2,7 +2,8 @@ import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { clients as clientRoutes } from '@/routes';
+import clientRoutes from '@/routes/clients';
+import AppLayout from '@/layouts/app-layout';
 
 interface Client {
     id: number;
@@ -72,10 +73,8 @@ export default function Index({ clients }: { clients: Client[] }) {
     );
 }
 
-// @ts-ignore
-Index.layout = (page: any) => {
-    // We can't easily import the layout here without knowing the exact structure
-    // But usually in these starter kits it's wrapped in an AppShell
-    // I'll try to find where AppShell is.
-    return page;
-};
+Index.layout = (page: any) => (
+    <AppLayout breadcrumbs={[{ title: 'Clients', href: clientRoutes.index() }]}>
+        {page}
+    </AppLayout>
+);

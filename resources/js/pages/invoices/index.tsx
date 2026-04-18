@@ -3,7 +3,8 @@ import { Plus, FileText } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { invoices as invoiceRoutes } from '@/routes';
+import invoiceRoutes from '@/routes/invoices';
+import AppLayout from '@/layouts/app-layout';
 
 interface Client {
     client_name: string;
@@ -93,5 +94,8 @@ export default function Index({ invoices }: { invoices: Invoice[] }) {
     );
 }
 
-// @ts-ignore
-Index.layout = (page: any) => page;
+Index.layout = (page: any) => (
+    <AppLayout breadcrumbs={[{ title: 'Invoices', href: invoiceRoutes.index() }]}>
+        {page}
+    </AppLayout>
+);

@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2 } from 'lucide-react';
-import { clients as clientRoutes } from '@/routes';
+import clientRoutes from '@/routes/clients';
+import AppLayout from '@/layouts/app-layout';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
@@ -120,5 +121,13 @@ export default function Create() {
     );
 }
 
-// @ts-ignore
-Create.layout = (page: any) => page;
+Create.layout = (page: any) => (
+    <AppLayout
+        breadcrumbs={[
+            { title: 'Clients', href: clientRoutes.index() },
+            { title: 'New Client', href: clientRoutes.create() },
+        ]}
+    >
+        {page}
+    </AppLayout>
+);

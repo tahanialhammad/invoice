@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
-import { invoices as invoiceRoutes } from '@/routes';
+import invoiceRoutes from '@/routes/invoices';
+import AppLayout from '@/layouts/app-layout';
 
 interface Client {
     id: number;
@@ -135,5 +136,13 @@ export default function Create({ clients }: { clients: Client[] }) {
     );
 }
 
-// @ts-ignore
-Create.layout = (page: any) => page;
+Create.layout = (page: any) => (
+    <AppLayout
+        breadcrumbs={[
+            { title: 'Invoices', href: invoiceRoutes.index() },
+            { title: 'Create Invoice', href: invoiceRoutes.create() },
+        ]}
+    >
+        {page}
+    </AppLayout>
+);
