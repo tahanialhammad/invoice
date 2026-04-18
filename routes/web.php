@@ -17,6 +17,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->where('status', 'paid')
                 ->whereYear('issue_date', now()->year)
                 ->count(),
+                
+            // New Financial Stats
+            'total_revenue_this_year' => $user->invoices()
+                ->where('status', 'paid')
+                ->whereYear('issue_date', now()->year)
+                ->sum('total'),
+                
+            'pending_total_amount' => $user->invoices()
+                ->where('status', 'pending')
+                ->sum('total'),
+            'pending_invoices_count' => $user->invoices()
+                ->where('status', 'pending')
+                ->count(),
+                
+            'overdue_total_amount' => $user->invoices()
+                ->where('status', 'overdue')
+                ->sum('total'),
         ];
 
         if ($user->is_admin) {
