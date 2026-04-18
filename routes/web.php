@@ -22,6 +22,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'stats' => $stats,
         ]);
     })->name('dashboard');
+
+    Route::resource('clients', \App\Http\Controllers\ClientController::class);
+    Route::resource('invoices', \App\Http\Controllers\InvoiceController::class);
 });
 
 require __DIR__.'/settings.php';
