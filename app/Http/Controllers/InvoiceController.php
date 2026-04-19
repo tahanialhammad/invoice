@@ -84,7 +84,7 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'invoice_number' => 'required|string|unique:invoices,invoice_number,' . $invoice->id,
-            'status' => 'required|in:pending,paid,cancelled',
+            'status' => 'required|in:draft,sent,pending,paid,overdue,cancelled',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:issue_date',
             'items' => 'required|array|min:1',
@@ -115,6 +115,34 @@ class InvoiceController extends Controller
         return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
     }
 
+    public function send(Invoice $invoice)
+    {
+        $this->authorizeOwner($invoice);
+
+        if (!$invoice->client->email) {
+            return back()->with('error', 'Client has no email address.');
+        }
+
+        $invoice->load(['client', 'user', 'items']);
+
+        // Generate PDF content
+        $pdfContent = base64_decode(
+            Pdf::view('pdf.invoice', ['invoice' => $invoice])
+                ->driver('dompdf')
+                ->format('a4')
+                ->base64()
+        );
+
+        // Send Email
+        \Illuminate\Support\Facades\Mail::to($invoice->client->email)
+            ->send(new \App\Mail\InvoiceMail($invoice, $pdfContent));
+
+        // Update Status
+        $invoice->update(['status' => 'sent']);
+
+        return back()->with('success', 'Invoice email sent successfully.');
+    }
+
     public function destroy(Invoice $invoice)
     {
         $this->authorizeOwner($invoice);
@@ -125,6 +153,10 @@ class InvoiceController extends Controller
 
     protected function authorizeOwner(Invoice $invoice)
     {
+        if (auth()->user()->is_admin) {
+            return;
+        }
+
         if ($invoice->user_id !== auth()->id()) {
             abort(403);
         }
