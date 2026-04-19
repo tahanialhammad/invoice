@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html dir="{{ $invoice->arabic ? 'rtl' : 'ltr' }}">
+<html dir="{{ (isset($invoice->arabic) && $invoice->arabic) ? 'rtl' : 'ltr' }}">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Invoice {{ $invoice->invoice_number }}</title>
@@ -44,20 +44,30 @@
             padding-bottom: 20px;
         }
         .heading {
-            background: #eee;
-            border-bottom: 1px solid #ddd;
+            background: #f8fafc;
+            border-bottom: 2px solid #e2e8f0;
             font-weight: bold;
+            color: #64748b;
+            font-size: 11px;
+            text-transform: uppercase;
         }
         .item td {
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 12px 5px;
         }
         .item.last td {
             border-bottom: none;
         }
-        .total td:nth-child(2) {
+        .total-row td {
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+        .grand-total td {
             border-top: 2px solid #333;
             font-weight: bold;
             font-size: 16px;
+            color: #2563eb;
+            padding-top: 15px;
         }
         .rtl {
             direction: rtl;
@@ -78,11 +88,11 @@
         }
         .badge-paid { background-color: #d1fae5; color: #065f46; }
         .badge-pending { background-color: #fef3c7; color: #92400e; }
-        .badge-overdue { background-color: #fee2e2; color: #991b1b; }
+        .badge-cancelled { background-color: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body>
-    <div class="invoice-box">
+    <div class="invoice-box {{ (isset($invoice->arabic) && $invoice->arabic) ? 'rtl' : '' }}">
         <table class="header-table">
             <tr>
                 <td>
@@ -133,19 +143,30 @@
         </table>
 
         <table style="margin-top: 40px;">
-            <tr class="heading">
-                <td>Description</td>
-                <td class="text-right">Amount</td>
-            </tr>
-            <tr class="item">
-                <td style="padding: 20px 5px;">
-                    <strong>Professional Services</strong><br>
-                    <span style="color: #999; font-size: 12px;">Invoice for services rendered as per agreement.</span>
-                </td>
-                <td class="text-right" style="padding: 20px 5px; font-weight: bold; font-size: 15px;">
-                    €{{ number_format($invoice->total, 2) }}
-                </td>
-            </tr>
+            <thead>
+                <tr class="heading">
+                    <td style="width: 40%;">Description</td>
+                    <td class="text-right">Qty</td>
+                    <td class="text-right">Unit Price</td>
+                    <td class="text-right">Tax %</td>
+                    <td class="text-right">Total</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($invoice->items as $item)
+                    <tr class="item">
+                        <td>
+                            <strong>{{ $item->description }}</strong>
+                        </td>
+                        <td class="text-right">{{ $item->quantity }}</td>
+                        <td class="text-right">${{ number_format($item->unit_price, 2) }}</td>
+                        <td class="text-right">{{ $item->tax_rate }}%</td>
+                        <td class="text-right">
+                            <strong>${{ number_format($item->row_total + $item->tax_amount, 2) }}</strong>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
         </table>
 
         <table style="margin-top: 20px;">
@@ -153,13 +174,17 @@
                 <td width="60%"></td>
                 <td width="40%">
                     <table class="totals-table">
-                        <tr>
+                        <tr class="total-row">
                             <td style="color: #666;">Subtotal</td>
-                            <td class="text-right">€{{ number_format($invoice->total, 2) }}</td>
+                            <td class="text-right">${{ number_format($invoice->subtotal, 2) }}</td>
                         </tr>
-                        <tr class="total">
-                            <td style="font-size: 18px; padding-top: 15px;">Total</td>
-                            <td class="text-right" style="font-size: 18px; color: #2563eb; padding-top: 15px;">€{{ number_format($invoice->total, 2) }}</td>
+                        <tr class="total-row">
+                            <td style="color: #666;">Tax Total</td>
+                            <td class="text-right">${{ number_format($invoice->tax_total, 2) }}</td>
+                        </tr>
+                        <tr class="grand-total">
+                            <td>Total</td>
+                            <td class="text-right">${{ number_format($invoice->total_amount, 2) }}</td>
                         </tr>
                     </table>
                 </td>

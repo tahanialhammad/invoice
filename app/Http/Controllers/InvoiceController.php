@@ -14,7 +14,7 @@ class InvoiceController extends Controller
     {
         $this->authorizeOwner($invoice);
         
-        return Pdf::view('pdf.invoice', ['invoice' => $invoice->load(['client', 'user'])])
+        return Pdf::view('pdf.invoice', ['invoice' => $invoice->load(['client', 'user', 'items'])])
             ->driver('dompdf')
             ->format('a4')
             ->name("invoice-{$invoice->invoice_number}.pdf");
@@ -38,16 +38,24 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'invoice_number' => 'required|string|unique:invoices,invoice_number',
-            'total' => 'required|numeric|min:0',
             'status' => 'required|in:pending,paid,cancelled',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:issue_date',
+            'items' => 'required|array|min:1',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.tax_rate' => 'required|numeric|min:0|max:100',
         ]);
 
         // Ensure the client belongs to the user
         $client = auth()->user()->clients()->findOrFail($validated['client_id']);
 
-        auth()->user()->invoices()->create($validated);
+        $invoice = auth()->user()->invoices()->create($validated);
+
+        foreach ($validated['items'] as $item) {
+            $invoice->items()->create($item);
+        }
 
         return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
     }
@@ -56,7 +64,7 @@ class InvoiceController extends Controller
     {
         $this->authorizeOwner($invoice);
         return Inertia::render('invoices/show', [
-            'invoice' => $invoice->load('client')
+            'invoice' => $invoice->load(['client', 'items'])
         ]);
     }
 
@@ -64,7 +72,7 @@ class InvoiceController extends Controller
     {
         $this->authorizeOwner($invoice);
         return Inertia::render('invoices/edit', [
-            'invoice' => $invoice,
+            'invoice' => $invoice->load('items'),
             'clients' => auth()->user()->clients()->orderBy('client_name')->get()
         ]);
     }
@@ -76,16 +84,33 @@ class InvoiceController extends Controller
         $validated = $request->validate([
             'client_id' => 'required|exists:clients,id',
             'invoice_number' => 'required|string|unique:invoices,invoice_number,' . $invoice->id,
-            'total' => 'required|numeric|min:0',
             'status' => 'required|in:pending,paid,cancelled',
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:issue_date',
+            'items' => 'required|array|min:1',
+            'items.*.id' => 'nullable|exists:invoice_items,id',
+            'items.*.description' => 'required|string',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_price' => 'required|numeric|min:0',
+            'items.*.tax_rate' => 'required|numeric|min:0|max:100',
         ]);
 
         // Ensure the client belongs to the user
         auth()->user()->clients()->findOrFail($validated['client_id']);
 
         $invoice->update($validated);
+
+        // Sync items
+        $itemIds = collect($validated['items'])->pluck('id')->filter()->toArray();
+        $invoice->items()->whereNotIn('id', $itemIds)->delete();
+
+        foreach ($validated['items'] as $itemData) {
+            if (isset($itemData['id'])) {
+                $invoice->items()->find($itemData['id'])->update($itemData);
+            } else {
+                $invoice->items()->create($itemData);
+            }
+        }
 
         return redirect()->route('invoices.index')->with('success', 'Invoice updated successfully.');
     }
