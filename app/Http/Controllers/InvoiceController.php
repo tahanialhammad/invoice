@@ -57,6 +57,12 @@ class InvoiceController extends Controller
             $invoice->items()->create($item);
         }
 
+        // Trigger Payment Confirmation Email if created as Paid
+        if ($validated['status'] === 'paid' && $invoice->client->email) {
+            \Illuminate\Support\Facades\Mail::to($invoice->client->email)
+                ->send(new \App\Mail\PaymentConfirmationMail($invoice));
+        }
+
         return redirect()->route('invoices.index')->with('success', 'Invoice created successfully.');
     }
 
@@ -98,7 +104,10 @@ class InvoiceController extends Controller
         // Ensure the client belongs to the user
         auth()->user()->clients()->findOrFail($validated['client_id']);
 
-        $invoice->update($validated);
+        $oldStatus = $invoice->status;
+
+        // Update invoice (only non-nested fields to avoid mass-assignment issues)
+        $invoice->update(\Illuminate\Support\Arr::except($validated, ['items']));
 
         // Sync items
         $itemIds = collect($validated['items'])->pluck('id')->filter()->toArray();
@@ -109,6 +118,17 @@ class InvoiceController extends Controller
                 $invoice->items()->find($itemData['id'])->update($itemData);
             } else {
                 $invoice->items()->create($itemData);
+            }
+        }
+
+        // Trigger Payment Confirmation Email whenever status changes TO 'paid'
+        if ($oldStatus !== 'paid' && $validated['status'] === 'paid') {
+            // Reload relationships to ensure client & items are fresh after the update
+            $invoice->load(['client', 'user', 'items']);
+
+            if ($invoice->client && $invoice->client->email) {
+                \Illuminate\Support\Facades\Mail::to($invoice->client->email)
+                    ->send(new \App\Mail\PaymentConfirmationMail($invoice));
             }
         }
 
