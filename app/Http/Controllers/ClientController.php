@@ -10,14 +10,14 @@ class ClientController extends Controller
 {
     public function index()
     {
-        return Inertia::render('clients/index', [
+        return Inertia::render('Clients/index', [
             'clients' => auth()->user()->clients()->latest()->get()
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('clients/create');
+        return Inertia::render('Clients/create');
     }
 
     public function store(Request $request)
@@ -39,7 +39,7 @@ class ClientController extends Controller
     public function show(Client $client)
     {
         $this->authorizeOwner($client);
-        return Inertia::render('clients/show', [
+        return Inertia::render('Clients/show', [
             'client' => $client->load('invoices')
         ]);
     }
@@ -47,7 +47,7 @@ class ClientController extends Controller
     public function edit(Client $client)
     {
         $this->authorizeOwner($client);
-        return Inertia::render('clients/edit', [
+        return Inertia::render('Clients/edit', [
             'client' => $client
         ]);
     }

@@ -85,7 +85,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('dashboard', [
+        return Inertia::render('Dashboard/index', [
             'stats' => $stats,
             'charts' => [
                 'monthlyRevenue' => $monthlyData,
