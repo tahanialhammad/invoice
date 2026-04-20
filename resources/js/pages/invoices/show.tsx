@@ -1,6 +1,17 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Download, Edit, ArrowLeft } from 'lucide-react';
+import { Download, Edit, ArrowLeft, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from '@/components/ui/dialog';
 import invoiceRoutes from '@/routes/invoices';
 import AppLayout from '@/layouts/app-layout';
 import InvoiceStatusBadge, { InvoiceStatus } from './partials/InvoiceStatusBadge';
@@ -44,6 +55,24 @@ export default function Show({ invoice }: { invoice: Invoice }) {
         }).format(amount);
     };
 
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleDelete = () => {
+        setIsDeleting(true);
+        router.delete(invoiceRoutes.destroy(invoice.id).url, {
+            onSuccess: () => {
+                setIsDeleteDialogOpen(false);
+                setIsDeleting(false);
+                toast.success('Invoice deleted successfully!');
+            },
+            onError: () => {
+                setIsDeleting(false);
+                toast.error('Failed to delete invoice.');
+            },
+        });
+    };
+
     return (
         <>
             <Head title={`Invoice ${invoice.invoice_number}`} />
@@ -69,6 +98,33 @@ export default function Show({ invoice }: { invoice: Invoice }) {
                                 <Edit className="mr-2 size-4" /> Edit
                             </Button>
                         </Link>
+                        
+                        {['pending', 'cancelled'].includes(invoice.status) && (
+                            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                                <DialogTrigger asChild>
+                                    <Button variant="destructive" size="sm" className="shadow-sm">
+                                        <Trash2 className="mr-2 size-4" /> Delete
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Delete Invoice</DialogTitle>
+                                        <DialogDescription>
+                                            Are you sure you want to delete invoice {invoice.invoice_number}? This action cannot be undone.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <DialogFooter>
+                                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)} disabled={isDeleting}>
+                                            Cancel
+                                        </Button>
+                                        <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+                                            {isDeleting ? 'Deleting...' : 'Delete'}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                        
                         <a href={invoiceRoutes.pdf(invoice.id).url} target="_blank" rel="noopener noreferrer">
                             <Button size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-sm">
                                 <Download className="mr-2 size-4" /> PDF
