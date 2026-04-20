@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     SidebarGroup,
     SidebarGroupLabel,
@@ -11,6 +11,8 @@ import type { NavItem } from '@/types';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { isCurrentUrl } = useCurrentUrl();
+    const { auth } = usePage().props as any;
+    const overdueCount = auth?.overdueCount || 0;
 
     return (
         <SidebarGroup className="px-2 py-0">
@@ -26,6 +28,9 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}
                                 <span>{item.title}</span>
+                                {item.title === 'Invoices' && overdueCount > 0 && (
+                                    <span className="ml-auto flex h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse" />
+                                )}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

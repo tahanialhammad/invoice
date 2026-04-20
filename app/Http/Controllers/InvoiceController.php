@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\PaymentConfirmationMail;
 use App\Models\Invoice;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
 use Spatie\LaravelPdf\Facades\Pdf;
 
@@ -13,12 +16,13 @@ class InvoiceController extends Controller
     public function pdf(Invoice $invoice)
     {
         $this->authorizeOwner($invoice);
-        
+
         return Pdf::view('pdf.invoice', ['invoice' => $invoice->load(['client', 'user', 'items'])])
             ->driver('dompdf')
             ->format('a4')
             ->name("invoice-{$invoice->invoice_number}.pdf");
     }
+
     public function index()
     {
         return Inertia::render('invoices/index', [
@@ -36,22 +40,23 @@ class InvoiceController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'invoice_number' => 'required|string|unique:invoices,invoice_number',
-            'status' => 'required|in:pending,paid,cancelled',
-            'issue_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:issue_date',
-            'items' => 'required|array|min:1',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.tax_rate' => 'required|numeric|min:0|max:100',
+            'client_id'              => 'required|exists:clients,id',
+            'invoice_number'         => 'required|string|unique:invoices,invoice_number',
+            'status'                 => 'required|in:pending,paid,cancelled',
+            'issue_date'             => 'required|date',
+            'due_date'               => 'required|date|after_or_equal:issue_date',
+            'items'                  => 'required|array|min:1',
+            'items.*.description'    => 'required|string',
+            'items.*.quantity'       => 'required|numeric|min:0.01',
+            'items.*.unit_price'     => 'required|numeric|min:0',
+            'items.*.tax_rate'       => 'required|numeric|min:0|max:100',
         ]);
 
-        // Ensure the client belongs to the user
-        $client = auth()->user()->clients()->findOrFail($validated['client_id']);
+        // Ensure the client belongs to the authenticated user
+        auth()->user()->clients()->findOrFail($validated['client_id']);
 
-        $invoice = auth()->user()->invoices()->create($validated);
+        // Create invoice without nested items array
+        $invoice = auth()->user()->invoices()->create(Arr::except($validated, ['items']));
 
         foreach ($validated['items'] as $item) {
             $invoice->items()->create($item);
@@ -63,6 +68,7 @@ class InvoiceController extends Controller
     public function show(Invoice $invoice)
     {
         $this->authorizeOwner($invoice);
+
         return Inertia::render('invoices/show', [
             'invoice' => $invoice->load(['client', 'items'])
         ]);
@@ -71,6 +77,7 @@ class InvoiceController extends Controller
     public function edit(Invoice $invoice)
     {
         $this->authorizeOwner($invoice);
+
         return Inertia::render('invoices/edit', [
             'invoice' => $invoice->load('items'),
             'clients' => auth()->user()->clients()->orderBy('client_name')->get()
@@ -82,33 +89,48 @@ class InvoiceController extends Controller
         $this->authorizeOwner($invoice);
 
         $validated = $request->validate([
-            'client_id' => 'required|exists:clients,id',
-            'invoice_number' => 'required|string|unique:invoices,invoice_number,' . $invoice->id,
-            'status' => 'required|in:draft,sent,pending,paid,overdue,cancelled',
-            'issue_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:issue_date',
-            'items' => 'required|array|min:1',
-            'items.*.id' => 'nullable|exists:invoice_items,id',
-            'items.*.description' => 'required|string',
-            'items.*.quantity' => 'required|numeric|min:0.01',
-            'items.*.unit_price' => 'required|numeric|min:0',
-            'items.*.tax_rate' => 'required|numeric|min:0|max:100',
+            'client_id'              => 'required|exists:clients,id',
+            'invoice_number'         => 'required|string|unique:invoices,invoice_number,' . $invoice->id,
+            'status'                 => 'required|in:draft,sent,pending,paid,overdue,cancelled',
+            'issue_date'             => 'required|date',
+            'due_date'               => 'required|date|after_or_equal:issue_date',
+            'items'                  => 'required|array|min:1',
+            'items.*.id'             => 'nullable|exists:invoice_items,id',
+            'items.*.description'    => 'required|string',
+            'items.*.quantity'       => 'required|numeric|min:0.01',
+            'items.*.unit_price'     => 'required|numeric|min:0',
+            'items.*.tax_rate'       => 'required|numeric|min:0|max:100',
         ]);
 
-        // Ensure the client belongs to the user
+        // Ensure the client belongs to the authenticated user
         auth()->user()->clients()->findOrFail($validated['client_id']);
 
-        $invoice->update($validated);
+        // ✅ Capture the OLD status BEFORE any update happens
+        $oldStatus = $invoice->status;
 
-        // Sync items
+        // ✅ Update only scalar invoice fields — never pass the 'items' array to update()
+        $invoice->update(Arr::except($validated, ['items']));
+
+        // Sync line items
         $itemIds = collect($validated['items'])->pluck('id')->filter()->toArray();
         $invoice->items()->whereNotIn('id', $itemIds)->delete();
 
         foreach ($validated['items'] as $itemData) {
-            if (isset($itemData['id'])) {
-                $invoice->items()->find($itemData['id'])->update($itemData);
+            if (!empty($itemData['id'])) {
+                $invoice->items()->find($itemData['id'])?->update($itemData);
             } else {
                 $invoice->items()->create($itemData);
+            }
+        }
+
+        // ✅ Payment confirmation email — fires whenever ANY status transitions to 'paid'
+        if ($oldStatus !== 'paid' && $validated['status'] === 'paid') {
+            // Reload relationships so the Mailable has fresh, complete data
+            $invoice->load(['client', 'user', 'items']);
+
+            if ($invoice->client && $invoice->client->email) {
+                Mail::to($invoice->client->email)
+                    ->send(new PaymentConfirmationMail($invoice));
             }
         }
 
@@ -125,7 +147,6 @@ class InvoiceController extends Controller
 
         $invoice->load(['client', 'user', 'items']);
 
-        // Generate PDF content
         $pdfContent = base64_decode(
             Pdf::view('pdf.invoice', ['invoice' => $invoice])
                 ->driver('dompdf')
@@ -133,11 +154,9 @@ class InvoiceController extends Controller
                 ->base64()
         );
 
-        // Send Email
-        \Illuminate\Support\Facades\Mail::to($invoice->client->email)
+        Mail::to($invoice->client->email)
             ->send(new \App\Mail\InvoiceMail($invoice, $pdfContent));
 
-        // Update Status
         $invoice->update(['status' => 'sent']);
 
         return back()->with('success', 'Invoice email sent successfully.');

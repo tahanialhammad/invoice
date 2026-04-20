@@ -13,6 +13,9 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        // Automatically check and update overdue statuses for the current user
+        \Illuminate\Support\Facades\Artisan::call('invoices:check-overdue');
+
         $user = auth()->user();
         
         // Basic Stats

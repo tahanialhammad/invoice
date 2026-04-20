@@ -1,5 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import invoiceRoutes from '@/routes/invoices';
 import InvoiceStatusBadge, { InvoiceStatus } from './InvoiceStatusBadge';
 import InvoiceActions from './InvoiceActions';
@@ -27,7 +28,10 @@ export default function InvoiceRow({ invoice }: InvoiceRowProps) {
     };
 
     return (
-        <tr className="hover:bg-sidebar-accent/30 transition-colors group">
+        <tr className={cn(
+            "hover:bg-sidebar-accent/30 transition-colors group",
+            invoice.status === 'overdue' && "bg-red-50/30 font-medium"
+        )}>
             <td className="px-4 py-3 font-medium flex items-center gap-2">
                 <FileText className="size-4 text-sidebar-foreground/40" />
                 <Link href={invoiceRoutes.show(invoice.id).url} className="hover:underline text-blue-600 font-semibold">
