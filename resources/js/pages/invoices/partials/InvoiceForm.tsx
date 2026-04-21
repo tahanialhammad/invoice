@@ -108,6 +108,38 @@ export default function InvoiceForm({
                         </select>
                         {errors.status && <p className="text-sm text-red-500">{errors.status}</p>}
                     </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="invoice_type">Invoice Type</Label>
+                            <select
+                                id="invoice_type"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
+                                value={data.is_recurring ? 'recurring' : 'one_time'}
+                                onChange={(e) => setData('is_recurring', e.target.value === 'recurring')}
+                            >
+                                <option value="one_time">One-Time</option>
+                                <option value="recurring">Recurring</option>
+                            </select>
+                        </div>
+
+                        {data.is_recurring && (
+                            <div className="space-y-2">
+                                <Label htmlFor="recurring_interval">Interval</Label>
+                                <select
+                                    id="recurring_interval"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
+                                    value={data.recurring_interval || 'monthly'}
+                                    onChange={(e) => setData('recurring_interval', e.target.value)}
+                                >
+                                    <option value="weekly">Weekly</option>
+                                    <option value="monthly">Monthly</option>
+                                    <option value="yearly">Yearly</option>
+                                </select>
+                                {errors.recurring_interval && <p className="text-sm text-red-500">{errors.recurring_interval}</p>}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 <div className="space-y-4">

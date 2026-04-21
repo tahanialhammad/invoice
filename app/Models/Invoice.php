@@ -17,6 +17,9 @@ class Invoice extends Model
         'status',
         'issue_date',
         'due_date',
+        'is_recurring',
+        'recurring_interval',
+        'next_recurring_date',
     ];
 
     protected $casts = [
@@ -24,6 +27,8 @@ class Invoice extends Model
         'tax_total' => 'decimal:2',
         'total_amount' => 'decimal:2',
         'total' => 'decimal:2',
+        'is_recurring' => 'boolean',
+        'next_recurring_date' => 'date',
     ];
 
     public function user()

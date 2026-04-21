@@ -23,6 +23,8 @@ interface Invoice {
     status: string;
     issue_date: string;
     due_date: string;
+    is_recurring?: boolean;
+    recurring_interval?: string;
     items: InvoiceItem[];
 }
 
@@ -33,6 +35,8 @@ export default function Edit({ invoice, clients }: { invoice: Invoice; clients: 
         status: invoice.status,
         issue_date: invoice.issue_date,
         due_date: invoice.due_date,
+        is_recurring: invoice.is_recurring ?? false,
+        recurring_interval: invoice.recurring_interval ?? 'monthly',
         items: invoice.items.length > 0 ? invoice.items : [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0 }],
     });
 

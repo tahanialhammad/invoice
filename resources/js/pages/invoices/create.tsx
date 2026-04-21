@@ -15,6 +15,8 @@ export default function Create({ clients }: { clients: Client[] }) {
         status: 'pending',
         issue_date: new Date().toISOString().split('T')[0],
         due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        is_recurring: false,
+        recurring_interval: 'monthly',
         items: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 0 }],
     });
 

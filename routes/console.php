@@ -12,6 +12,9 @@ Artisan::command('inspire', function () {
 // ✅ Run daily to keep invoice statuses accurate
 Schedule::command('invoices:check-overdue')->daily();
 
+// ✅ Run daily to generate recurring invoices
+Schedule::command('invoices:generate-recurring')->daily();
+
 // ✅ Run synchronously every Monday 8am — no queue worker required
 Schedule::call(function () {
     (new SendWeeklyInvoiceReminders())->handle();

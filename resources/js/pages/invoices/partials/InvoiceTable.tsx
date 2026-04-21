@@ -20,8 +20,9 @@ interface InvoiceTableProps {
 export default function InvoiceTable({ invoices }: InvoiceTableProps) {
     return (
         <div className="rounded-xl border border-sidebar-border/70 bg-sidebar overflow-hidden shadow-sm">
-            <table className="w-full text-left">
-                <thead className="border-b border-sidebar-border/70 bg-sidebar-accent/50">
+            <div className="overflow-x-auto">
+                <table className="w-full text-left min-w-[800px]">
+                    <thead className="border-b border-sidebar-border/70 bg-sidebar-accent/50">
                     <tr>
                         <th className="px-4 py-3 font-semibold text-sidebar-foreground/70">Number</th>
                         <th className="px-4 py-3 font-semibold text-sidebar-foreground/70">Client</th>
@@ -47,6 +48,7 @@ export default function InvoiceTable({ invoices }: InvoiceTableProps) {
                     )}
                 </tbody>
             </table>
+            </div>
         </div>
     );
 }
