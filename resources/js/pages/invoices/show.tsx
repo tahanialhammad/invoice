@@ -1,6 +1,6 @@
 import { Head, Link, router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
-import { Download, Edit, ArrowLeft, Trash2 } from 'lucide-react';
+import { Download, Edit, ArrowLeft, Trash2, RefreshCw } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -43,6 +43,8 @@ interface Invoice {
     subtotal: number;
     tax_total: number;
     total_amount: number;
+    is_recurring?: boolean;
+    recurring_interval?: string;
     client: Client;
     items: InvoiceItem[];
 }
@@ -157,17 +159,25 @@ export default function Show({ invoice }: { invoice: Invoice }) {
                                     </h1>
                                     <div className="text-sidebar-foreground/60 font-mono text-sm mt-1">Ref: #{invoice.invoice_number}</div>
                                 </div>
-                                <div className="flex flex-col gap-3 items-end">
-                                    <InvoiceStatusBadge status={invoice.status} className="text-sm px-3 py-1" />
-                                    <div className="space-y-1 text-sm">
-                                        <div className="flex justify-end gap-2 text-sidebar-foreground/60">
-                                            <span>Issued:</span> <span className="font-medium text-sidebar-foreground">{invoice.issue_date}</span>
+                                    <div className="flex flex-col gap-3 items-end">
+                                        <div className="flex items-center gap-2">
+                                            {invoice.is_recurring && (
+                                                <span className="flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 capitalize">
+                                                    <RefreshCw className="size-3 mr-1" />
+                                                    Recurring ({invoice.recurring_interval})
+                                                </span>
+                                            )}
+                                            <InvoiceStatusBadge status={invoice.status} className="text-sm px-3 py-1" />
                                         </div>
-                                        <div className="flex justify-end gap-2 text-sidebar-foreground/60">
-                                            <span>Due:</span> <span className="font-medium text-sidebar-foreground">{invoice.due_date}</span>
+                                        <div className="space-y-1 text-sm">
+                                            <div className="flex justify-end gap-2 text-sidebar-foreground/60">
+                                                <span>Issued:</span> <span className="font-medium text-sidebar-foreground">{invoice.issue_date}</span>
+                                            </div>
+                                            <div className="flex justify-end gap-2 text-sidebar-foreground/60">
+                                                <span>Due:</span> <span className="font-medium text-sidebar-foreground">{invoice.due_date}</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
                             </div>
                         </div>
                     </div>

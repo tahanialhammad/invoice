@@ -45,12 +45,27 @@ class InvoiceController extends Controller
             'status'                 => 'required|in:pending,paid,cancelled',
             'issue_date'             => 'required|date',
             'due_date'               => 'required|date|after_or_equal:issue_date',
+            'is_recurring'           => 'boolean',
+            'recurring_interval'     => 'nullable|required_if:is_recurring,true|in:weekly,monthly,yearly',
             'items'                  => 'required|array|min:1',
             'items.*.description'    => 'required|string',
             'items.*.quantity'       => 'required|numeric|min:0.01',
             'items.*.unit_price'     => 'required|numeric|min:0',
             'items.*.tax_rate'       => 'required|numeric|min:0|max:100',
         ]);
+
+        if (!empty($validated['is_recurring']) && !empty($validated['recurring_interval'])) {
+            $issueDate = \Carbon\Carbon::parse($validated['issue_date']);
+            $validated['next_recurring_date'] = match ($validated['recurring_interval']) {
+                'weekly' => $issueDate->addWeek()->toDateString(),
+                'monthly' => $issueDate->addMonth()->toDateString(),
+                'yearly' => $issueDate->addYear()->toDateString(),
+            };
+        } else {
+            $validated['is_recurring'] = false;
+            $validated['recurring_interval'] = null;
+            $validated['next_recurring_date'] = null;
+        }
 
         // Ensure the client belongs to the authenticated user
         auth()->user()->clients()->findOrFail($validated['client_id']);
@@ -94,6 +109,8 @@ class InvoiceController extends Controller
             'status'                 => 'required|in:draft,sent,pending,paid,overdue,cancelled',
             'issue_date'             => 'required|date',
             'due_date'               => 'required|date|after_or_equal:issue_date',
+            'is_recurring'           => 'boolean',
+            'recurring_interval'     => 'nullable|required_if:is_recurring,true|in:weekly,monthly,yearly',
             'items'                  => 'required|array|min:1',
             'items.*.id'             => 'nullable|exists:invoice_items,id',
             'items.*.description'    => 'required|string',
@@ -101,6 +118,21 @@ class InvoiceController extends Controller
             'items.*.unit_price'     => 'required|numeric|min:0',
             'items.*.tax_rate'       => 'required|numeric|min:0|max:100',
         ]);
+
+        if (!empty($validated['is_recurring']) && !empty($validated['recurring_interval'])) {
+            // Only recalculate next_recurring_date if it's currently null or interval changed, or issue_date changed 
+            // Better to keep it updated relative to issue date if changing things around, but maybe simpler:
+            $issueDate = \Carbon\Carbon::parse($validated['issue_date']);
+            $validated['next_recurring_date'] = match ($validated['recurring_interval']) {
+                'weekly' => $issueDate->addWeek()->toDateString(),
+                'monthly' => $issueDate->addMonth()->toDateString(),
+                'yearly' => $issueDate->addYear()->toDateString(),
+            };
+        } else {
+            $validated['is_recurring'] = false;
+            $validated['recurring_interval'] = null;
+            $validated['next_recurring_date'] = null;
+        }
 
         // Ensure the client belongs to the authenticated user
         auth()->user()->clients()->findOrFail($validated['client_id']);

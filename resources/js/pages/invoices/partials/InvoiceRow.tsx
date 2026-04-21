@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { FileText } from 'lucide-react';
+import { FileText, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import invoiceRoutes from '@/routes/invoices';
 import InvoiceStatusBadge, { InvoiceStatus } from './InvoiceStatusBadge';
@@ -12,6 +12,8 @@ interface InvoiceRowProps {
         total: number;
         status: InvoiceStatus;
         issue_date: string;
+        is_recurring?: boolean;
+        recurring_interval?: string;
         client: {
             client_name: string;
             email?: string;
@@ -30,12 +32,16 @@ export default function InvoiceRow({ invoice }: InvoiceRowProps) {
     return (
         <tr className={cn(
             "hover:bg-sidebar-accent/30 transition-colors group",
-            invoice.status === 'overdue' && "bg-red-50/30 font-medium"
+            invoice.status === 'overdue' && "bg-red-50/30 font-medium",
+            invoice.is_recurring && "bg-blue-50/10 border-l-2 border-l-blue-400"
         )}>
             <td className="px-4 py-3 font-medium flex items-center gap-2">
                 <FileText className="size-4 text-sidebar-foreground/40" />
-                <Link href={invoiceRoutes.show(invoice.id).url} className="hover:underline text-blue-600 font-semibold">
+                <Link href={invoiceRoutes.show(invoice.id).url} className="hover:underline text-blue-600 font-semibold flex items-center gap-2">
                     {invoice.invoice_number}
+                    {invoice.is_recurring && (
+                        <RefreshCw className="size-3 text-blue-500" title={`Recurring (${invoice.recurring_interval})`} />
+                    )}
                 </Link>
             </td>
             <td className="px-4 py-3">
