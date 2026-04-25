@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { usePage } from '@inertiajs/react';
 import InvoiceItemsTable, { InvoiceItem } from './InvoiceItemsTable';
 import InvoiceTotals from './InvoiceTotals';
 import { useEffect, useState } from 'react';
@@ -111,15 +113,24 @@ export default function InvoiceForm({
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <Label htmlFor="invoice_type">Invoice Type</Label>
+                            <Label htmlFor="invoice_type" className="flex items-center gap-2">
+                                Invoice Type
+                                {!usePage().props.auth.features.can_create_recurring_invoices && (
+                                    <Badge variant="outline" className="text-[10px] py-0 h-4 bg-yellow-500/10 text-yellow-600 border-yellow-200">
+                                        Pro Feature
+                                    </Badge>
+                                )}
+                            </Label>
                             <select
                                 id="invoice_type"
-                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all"
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all disabled:opacity-50"
                                 value={data.is_recurring ? 'recurring' : 'one_time'}
                                 onChange={(e) => setData('is_recurring', e.target.value === 'recurring')}
                             >
                                 <option value="one_time">One-Time</option>
-                                <option value="recurring">Recurring</option>
+                                <option value="recurring" disabled={!usePage().props.auth.features.can_create_recurring_invoices}>
+                                    Recurring {!usePage().props.auth.features.can_create_recurring_invoices ? '(Upgrade Required)' : ''}
+                                </option>
                             </select>
                         </div>
 

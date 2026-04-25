@@ -55,6 +55,10 @@ class InvoiceController extends Controller
         ]);
 
         if (!empty($validated['is_recurring']) && !empty($validated['recurring_interval'])) {
+            if (!auth()->user()->hasFeature('can_create_recurring_invoices')) {
+                return back()->withErrors(['is_recurring' => 'Your current plan does not support recurring invoices.']);
+            }
+
             $issueDate = \Carbon\Carbon::parse($validated['issue_date']);
             $validated['next_recurring_date'] = match ($validated['recurring_interval']) {
                 'weekly' => $issueDate->addWeek()->toDateString(),
@@ -120,6 +124,10 @@ class InvoiceController extends Controller
         ]);
 
         if (!empty($validated['is_recurring']) && !empty($validated['recurring_interval'])) {
+            if (!auth()->user()->hasFeature('can_create_recurring_invoices')) {
+                return back()->withErrors(['is_recurring' => 'Your current plan does not support recurring invoices.']);
+            }
+
             // Only recalculate next_recurring_date if it's currently null or interval changed, or issue_date changed 
             // Better to keep it updated relative to issue date if changing things around, but maybe simpler:
             $issueDate = \Carbon\Carbon::parse($validated['issue_date']);
