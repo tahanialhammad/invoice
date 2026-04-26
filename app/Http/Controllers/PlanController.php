@@ -14,9 +14,16 @@ class PlanController extends Controller
      */
     public function index()
     {
+        $user = auth()->user();
+        $activeSub = $user->subscriptions()->where('status', 'active')->latest('starts_at')->first();
+
         return Inertia::render('plans/index', [
             'plans' => Plan::all(),
-            'currentPlan' => auth()->user()->plan()
+            'currentPlan' => $user->plan(),
+            'activeSubscription' => $activeSub ? [
+                'pending_plan_id' => $activeSub->pending_plan_id,
+                'billing_cycle_ends_at' => $activeSub->billing_cycle_ends_at?->format('M d, Y'),
+            ] : null,
         ]);
     }
 

@@ -13,6 +13,8 @@ class Subscription extends Model
         'starts_at',
         'ends_at',
         'stripe_subscription_id',
+        'pending_plan_id',
+        'billing_cycle_ends_at',
     ];
 
     protected function casts(): array
@@ -20,7 +22,13 @@ class Subscription extends Model
         return [
             'starts_at' => 'datetime',
             'ends_at' => 'datetime',
+            'billing_cycle_ends_at' => 'datetime',
         ];
+    }
+
+    public function pendingPlan()
+    {
+        return $this->belongsTo(Plan::class, 'pending_plan_id');
     }
 
     public function user()

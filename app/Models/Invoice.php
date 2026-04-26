@@ -20,15 +20,21 @@ class Invoice extends Model
         'is_recurring',
         'recurring_interval',
         'next_recurring_date',
+        'is_subscription_invoice',
+        'billing_period_start',
+        'billing_period_end',
     ];
 
     protected $casts = [
-        'subtotal' => 'decimal:2',
-        'tax_total' => 'decimal:2',
-        'total_amount' => 'decimal:2',
-        'total' => 'decimal:2',
-        'is_recurring' => 'boolean',
-        'next_recurring_date' => 'date',
+        'subtotal'              => 'decimal:2',
+        'tax_total'             => 'decimal:2',
+        'total_amount'          => 'decimal:2',
+        'total'                 => 'decimal:2',
+        'is_recurring'          => 'boolean',
+        'is_subscription_invoice' => 'boolean',
+        'next_recurring_date'   => 'date',
+        'billing_period_start'  => 'date',
+        'billing_period_end'    => 'date',
     ];
 
     public function user()
