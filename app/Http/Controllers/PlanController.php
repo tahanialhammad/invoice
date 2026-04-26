@@ -1,0 +1,71 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Plan;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\Gate;
+
+class PlanController extends Controller
+{
+    /**
+     * Display a listing of plans for users.
+     */
+    public function index()
+    {
+        return Inertia::render('plans/index', [
+            'plans' => Plan::all(),
+            'currentPlan' => auth()->user()->plan()
+        ]);
+    }
+
+    /**
+     * Display the admin management interface.
+     */
+    public function manage()
+    {
+        if (!auth()->user()->is_admin) {
+            abort(403);
+        }
+
+        return Inertia::render('admin/plans/index', [
+            'plans' => Plan::all()
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified plan.
+     */
+    public function edit(Plan $plan)
+    {
+        if (!auth()->user()->is_admin) {
+            abort(403);
+        }
+
+        return Inertia::render('admin/plans/edit', [
+            'plan' => $plan
+        ]);
+    }
+
+    /**
+     * Update the specified plan.
+     */
+    public function update(Request $request, Plan $plan)
+    {
+        if (!auth()->user()->is_admin) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:500',
+            'features' => 'required|array',
+            'features.*' => 'required|string|max:100',
+        ]);
+
+        $plan->update($validated);
+
+        return redirect()->route('admin.plans.manage')->with('success', "Plan '{$plan->name}' updated successfully.");
+    }
+}

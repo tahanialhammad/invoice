@@ -42,4 +42,33 @@ class User extends Authenticatable
     {
         return $this->hasMany(Invoice::class);
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class);
+    }
+
+    public function plan()
+    {
+        $subscription = $this->subscriptions()
+            ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('ends_at')
+                      ->orWhere('ends_at', '>', now());
+            })
+            ->latest()
+            ->first();
+
+        return $subscription ? $subscription->plan : Plan::where('slug', 'basic')->first();
+    }
+
+    public function hasFeature($feature)
+    {
+        if ($this->is_admin) return true;
+        
+        $plan = $this->plan();
+        if (!$plan) return false;
+
+        return $plan->hasFeature($feature);
+    }
 }

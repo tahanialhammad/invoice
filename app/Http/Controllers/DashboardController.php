@@ -45,7 +45,7 @@ class DashboardController extends Controller
             ->where('status', 'paid')
             ->where('issue_date', '>=', now()->subMonths(11)->startOfMonth())
             ->select(
-                DB::raw("strftime('%Y-%m', issue_date) as month"),
+                DB::raw("DATE_FORMAT(issue_date, '%Y-%m') as month"),
                 DB::raw('SUM(total) as total')
             )
             ->groupBy('month')

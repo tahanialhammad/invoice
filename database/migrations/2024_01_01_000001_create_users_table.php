@@ -18,6 +18,15 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->boolean('is_admin')->default(false);
+            
+            // Company Fields
+            $table->string('company_name')->nullable();
+            $table->text('company_address')->nullable();
+            $table->string('company_email')->nullable();
+            $table->string('company_phone')->nullable();
+            $table->string('company_vat_number')->nullable();
+            $table->string('company_logo_url')->nullable();
+
             $table->rememberToken();
             $table->timestamps();
         });

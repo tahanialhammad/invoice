@@ -11,8 +11,21 @@ export type User = {
     [key: string]: unknown;
 };
 
+export type Plan = {
+    id: number;
+    name: string;
+    slug: string;
+    price: string;
+    description: string;
+    can_create_recurring_invoices: boolean;
+};
+
 export type Auth = {
     user: User;
+    plan: Plan | null;
+    features: {
+        can_create_recurring_invoices: boolean;
+    };
 };
 
 export type TwoFactorSetupData = {

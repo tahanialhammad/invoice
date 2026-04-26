@@ -40,6 +40,10 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'auth' => [
                 'user' => $request->user(),
+                'plan' => $request->user() ? $request->user()->plan() : null,
+                'features' => $request->user() ? [
+                    'can_create_recurring_invoices' => $request->user()->hasFeature('create_recurring_invoices'),
+                ] : [],
                 'overdueCount' => $request->user() ? $request->user()->invoices()->where('status', 'overdue')->count() : 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
