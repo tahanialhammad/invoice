@@ -6,26 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique();
-            $table->decimal('price', 8, 2);
+            $table->decimal('price', 15, 2);
             $table->string('description')->nullable();
-            $table->boolean('can_create_recurring_invoices')->default(false);
+            $table->json('features')->nullable(); // Store features as JSON array
             $table->string('stripe_price_id')->nullable();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('plans');

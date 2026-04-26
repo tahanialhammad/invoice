@@ -11,15 +11,28 @@ class Plan extends Model
         'slug',
         'price',
         'description',
-        'can_create_recurring_invoices',
+        'features', // JSON column
         'stripe_price_id',
     ];
 
-    protected function casts(): array
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'price' => 'decimal:2',
+        'features' => 'array', // Automatically cast JSON to PHP array
+    ];
+
+    /**
+     * Check if the plan has a specific feature.
+     *
+     * @param string $feature
+     * @return bool
+     */
+    public function hasFeature(string $feature): bool
     {
-        return [
-            'price' => 'decimal:2',
-            'can_create_recurring_invoices' => 'boolean',
-        ];
+        return in_array($feature, $this->features ?? []);
     }
 }

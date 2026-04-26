@@ -2,32 +2,45 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Plan;
 use Illuminate\Database\Seeder;
 
 class PlanSeeder extends Seeder
 {
+    /**
+     * Run the database seeds.
+     */
     public function run(): void
     {
-        \App\Models\Plan::updateOrCreate(['slug' => 'basic'], [
+        Plan::updateOrCreate(['slug' => 'basic'], [
             'name' => 'Basic',
             'price' => 0.00,
-            'description' => 'Perfect for individuals getting started. Create one-time invoices only.',
-            'can_create_recurring_invoices' => false,
+            'description' => 'Perfect for individuals getting started.',
+            'features' => [
+                'create_one_time_invoices',
+            ],
         ]);
 
-        \App\Models\Plan::updateOrCreate(['slug' => 'business'], [
+        Plan::updateOrCreate(['slug' => 'business'], [
             'name' => 'Business',
             'price' => 19.00,
             'description' => 'For growing businesses. Includes recurring invoices.',
-            'can_create_recurring_invoices' => true,
+            'features' => [
+                'create_one_time_invoices',
+                'create_recurring_invoices',
+            ],
         ]);
 
-        \App\Models\Plan::updateOrCreate(['slug' => 'premium'], [
+        Plan::updateOrCreate(['slug' => 'premium'], [
             'name' => 'Premium',
             'price' => 49.00,
-            'description' => 'All features with priority support.',
-            'can_create_recurring_invoices' => true,
+            'description' => 'Full access for large agencies.',
+            'features' => [
+                'create_one_time_invoices',
+                'create_recurring_invoices',
+                'advanced_reports',
+                'team_management',
+            ],
         ]);
     }
 }

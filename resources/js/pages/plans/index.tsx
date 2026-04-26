@@ -21,7 +21,7 @@ interface Plan {
     slug: string;
     price: string;
     description: string;
-    can_create_recurring_invoices: boolean;
+    features: string[];
 }
 
 interface Props {
@@ -121,49 +121,18 @@ export default function Index({ plans, currentPlan }: Props) {
 
                                 <CardContent className="flex-grow pb-8">
                                     <div className="space-y-4">
-                                        <p className="text-sm font-semibold text-foreground uppercase tracking-wider">What's included:</p>
+                                        <p className="text-sm font-semibold text-foreground uppercase tracking-wider">Plan Features:</p>
                                         <ul className="space-y-3">
-                                            <li className="flex items-start text-sm">
-                                                <div className="mr-3 mt-0.5 rounded-full bg-green-500/10 p-0.5">
-                                                    <Check className="h-3 w-3 text-green-600" />
-                                                </div>
-                                                <span className="text-muted-foreground">Unlimited professional invoices</span>
-                                            </li>
-                                            <li className="flex items-start text-sm">
-                                                <div className="mr-3 mt-0.5 rounded-full bg-green-500/10 p-0.5">
-                                                    <Check className="h-3 w-3 text-green-600" />
-                                                </div>
-                                                <span className="text-muted-foreground">Client contact management</span>
-                                            </li>
-                                            <li className="flex items-start text-sm">
-                                                <div className="mr-3 mt-0.5 rounded-full bg-green-500/10 p-0.5">
-                                                    <Check className="h-3 w-3 text-green-600" />
-                                                </div>
-                                                <span className="text-muted-foreground">Detailed revenue analytics</span>
-                                            </li>
-                                            <li className="flex items-start text-sm">
-                                                {plan.can_create_recurring_invoices ? (
-                                                    <>
-                                                        <div className="mr-3 mt-0.5 rounded-full bg-green-500/10 p-0.5">
-                                                            <Check className="h-3 w-3 text-green-600" />
-                                                        </div>
-                                                        <span className="text-foreground font-medium">Auto-recurring billing</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div className="mr-3 mt-0.5 rounded-full bg-sidebar-border p-0.5 opacity-20">
-                                                            <Check className="h-3 w-3" />
-                                                        </div>
-                                                        <span className="text-muted-foreground/50 line-through">Auto-recurring billing</span>
-                                                    </>
-                                                )}
-                                            </li>
-                                            <li className="flex items-start text-sm">
-                                                <div className="mr-3 mt-0.5 rounded-full bg-green-500/10 p-0.5">
-                                                    <Check className="h-3 w-3 text-green-600" />
-                                                </div>
-                                                <span className="text-muted-foreground">Priority email support</span>
-                                            </li>
+                                            {plan.features.map((feature, index) => (
+                                                <li key={index} className="flex items-start text-sm">
+                                                    <div className="mr-3 mt-0.5 rounded-full bg-green-500/10 p-0.5">
+                                                        <Check className="h-3 w-3 text-green-600" />
+                                                    </div>
+                                                    <span className="text-muted-foreground capitalize">
+                                                        {feature.replace(/_/g, ' ')}
+                                                    </span>
+                                                </li>
+                                            ))}
                                         </ul>
                                     </div>
                                 </CardContent>

@@ -55,7 +55,7 @@ class InvoiceController extends Controller
         ]);
 
         if (!empty($validated['is_recurring']) && !empty($validated['recurring_interval'])) {
-            if (!auth()->user()->hasFeature('can_create_recurring_invoices')) {
+            if (!auth()->user()->hasFeature('create_recurring_invoices')) {
                 return back()->withErrors(['is_recurring' => 'Your current plan does not support recurring invoices.']);
             }
 
@@ -124,7 +124,7 @@ class InvoiceController extends Controller
         ]);
 
         if (!empty($validated['is_recurring']) && !empty($validated['recurring_interval'])) {
-            if (!auth()->user()->hasFeature('can_create_recurring_invoices')) {
+            if (!auth()->user()->hasFeature('create_recurring_invoices')) {
                 return back()->withErrors(['is_recurring' => 'Your current plan does not support recurring invoices.']);
             }
 

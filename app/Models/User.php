@@ -69,6 +69,6 @@ class User extends Authenticatable
         $plan = $this->plan();
         if (!$plan) return false;
 
-        return $plan->{$feature} ?? false;
+        return $plan->hasFeature($feature);
     }
 }

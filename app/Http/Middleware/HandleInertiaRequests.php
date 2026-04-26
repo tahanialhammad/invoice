@@ -42,7 +42,7 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
                 'plan' => $request->user() ? $request->user()->plan() : null,
                 'features' => $request->user() ? [
-                    'can_create_recurring_invoices' => $request->user()->hasFeature('can_create_recurring_invoices'),
+                    'can_create_recurring_invoices' => $request->user()->hasFeature('create_recurring_invoices'),
                 ] : [],
                 'overdueCount' => $request->user() ? $request->user()->invoices()->where('status', 'overdue')->count() : 0,
             ],
