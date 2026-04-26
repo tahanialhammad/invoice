@@ -17,9 +17,7 @@ export default function ClientActions({ client, showView = true }: ClientActions
     const handleDelete = (e: React.MouseEvent) => {
         e.preventDefault();
         if (confirm(`Are you sure you want to delete ${client.client_name}? This will also delete all associated invoices.`)) {
-            router.delete(clientRoutes.destroy(client.id), {
-                onSuccess: () => toast.success('Client deleted successfully'),
-            });
+            router.delete(clientRoutes.destroy(client.id));
         }
     };
 

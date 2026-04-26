@@ -17,11 +17,23 @@ class ClientController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->canAddClient()) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'You have reached your limit. Please upgrade your plan to add more clients.']);
+            return redirect()->route('clients.index');
+        }
+
         return Inertia::render('Clients/create');
     }
 
     public function store(Request $request)
     {
+        $user = auth()->user();
+
+        if (!$user->canAddClient()) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'You have reached your limit. Please upgrade your plan to add more clients.']);
+            return redirect()->route('clients.index');
+        }
+
         $validated = $request->validate([
             'client_name' => 'required|string|max:255',
             'business_name' => 'required|string|max:255',
@@ -33,7 +45,9 @@ class ClientController extends Controller
 
         auth()->user()->clients()->create($validated);
 
-        return redirect()->route('clients.index')->with('success', 'Client created successfully.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Client created successfully.']);
+
+        return redirect()->route('clients.index');
     }
 
     public function show(Client $client)
@@ -73,9 +87,17 @@ class ClientController extends Controller
     public function destroy(Client $client)
     {
         $this->authorizeOwner($client);
+
+        if ($client->invoices()->exists()) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'Cannot delete client. You must manually delete all associated invoices before this client can be removed.']);
+            return redirect()->back();
+        }
+
         $client->delete();
 
-        return redirect()->route('clients.index')->with('success', 'Client deleted successfully.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Client deleted successfully.']);
+
+        return redirect()->route('clients.index');
     }
 
     protected function authorizeOwner(Client $client)

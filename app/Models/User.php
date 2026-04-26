@@ -71,4 +71,37 @@ class User extends Authenticatable
 
         return $plan->hasFeature($feature);
     }
+
+    public function canAddClient(): bool
+    {
+        if ($this->is_admin) {
+            return true;
+        }
+
+        $plan = $this->plan();
+        if (!$plan) {
+            return false;
+        }
+
+        // Search the plan's JSON features array for the limit string
+        $features = collect($plan->features ?? []);
+        $limitFeature = $features->first(fn($feature) => str_starts_with($feature, 'max_') && str_ends_with($feature, '_clients'));
+
+        if (!$limitFeature) {
+            return false; // Safely deny if limit feature is missing
+        }
+
+        // Extract the numeric limit or 'unlimited' keyword
+        if (preg_match('/max_(\d+|unlimited)_clients/', $limitFeature, $matches)) {
+            $limitValue = $matches[1];
+
+            if ($limitValue === 'unlimited') {
+                return true;
+            }
+
+            return $this->clients()->count() < (int) $limitValue;
+        }
+
+        return false;
+    }
 }
