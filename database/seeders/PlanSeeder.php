@@ -17,6 +17,7 @@ class PlanSeeder extends Seeder
             'price' => 0.00,
             'description' => 'Perfect for individuals getting started.',
             'features' => [
+                'max_5_clients',
                 'create_one_time_invoices',
             ],
         ]);
@@ -26,6 +27,7 @@ class PlanSeeder extends Seeder
             'price' => 19.00,
             'description' => 'For growing businesses. Includes recurring invoices.',
             'features' => [
+                'max_30_clients',
                 'create_one_time_invoices',
                 'create_recurring_invoices',
             ],
@@ -36,6 +38,7 @@ class PlanSeeder extends Seeder
             'price' => 49.00,
             'description' => 'Full access for large agencies.',
             'features' => [
+                'max_unlimited_clients',
                 'create_one_time_invoices',
                 'create_recurring_invoices',
                 'advanced_reports',

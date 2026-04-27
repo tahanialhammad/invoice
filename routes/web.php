@@ -23,6 +23,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('admin/plans/{plan}', [\App\Http\Controllers\PlanController::class, 'update'])->name('admin.plans.update');
 
         Route::get('admin/subscribers', [\App\Http\Controllers\AdminSubscriberController::class, 'index'])->name('admin.subscribers.index');
+        Route::get('admin/billing', [\App\Http\Controllers\AdminBillingController::class, 'index'])->name('admin.billing.index');
     });
     
     Route::post('subscriptions', [\App\Http\Controllers\SubscriptionController::class, 'store'])->name('subscriptions.store');

@@ -6,7 +6,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { ShieldCheck, Users } from 'lucide-react';
+import { ShieldCheck, Users, ReceiptText } from 'lucide-react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
@@ -72,6 +72,18 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                                 <Link href="/admin/subscribers" prefetch>
                                     <Users className="text-primary" />
                                     <span>Subscribers</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                asChild
+                                isActive={isCurrentUrl('/admin/billing')}
+                                tooltip={{ children: 'Subscription Billing' }}
+                            >
+                                <Link href="/admin/billing" prefetch>
+                                    <ReceiptText className="text-primary" />
+                                    <span>Billing</span>
                                 </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>

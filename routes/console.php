@@ -15,6 +15,12 @@ Schedule::command('invoices:check-overdue')->daily();
 // ✅ Run daily to generate recurring invoices
 Schedule::command('invoices:generate-recurring')->daily();
 
+// ✅ Run daily to generate subscription billing invoices (filters by anniversary day internally)
+Schedule::command('subscriptions:generate-invoices')->daily()->at('00:05');
+
+// ✅ Run daily to process pending subscription downgrades
+Schedule::command('app:process-plan-switches')->daily()->at('00:10');
+
 // ✅ Run synchronously every Monday 8am — no queue worker required
 Schedule::call(function () {
     (new SendWeeklyInvoiceReminders())->handle();

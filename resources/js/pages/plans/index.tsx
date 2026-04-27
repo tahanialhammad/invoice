@@ -2,7 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Check, Star, Zap, Shield, AlertCircle } from 'lucide-react';
+import { Check, Star, Zap, Shield, AlertCircle, Clock } from 'lucide-react';
 import subscriptions from '@/routes/subscriptions';
 import {
     Dialog,
@@ -27,9 +27,13 @@ interface Plan {
 interface Props {
     plans: Plan[];
     currentPlan: Plan;
+    activeSubscription?: {
+        pending_plan_id: number | null;
+        billing_cycle_ends_at: string | null;
+    } | null;
 }
 
-export default function Index({ plans, currentPlan }: Props) {
+export default function Index({ plans, currentPlan, activeSubscription }: Props) {
     const [confirmingPlan, setConfirmingPlan] = useState<Plan | null>(null);
     const { post, processing, setData } = useForm({
         plan_id: 0,
@@ -102,6 +106,13 @@ export default function Index({ plans, currentPlan }: Props) {
                                         </div>
                                     </div>
                                 )}
+                                {activeSubscription?.pending_plan_id === plan.id && (
+                                    <div className="absolute top-0 right-0">
+                                        <div className="bg-amber-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider">
+                                            Downgrade Scheduled
+                                        </div>
+                                    </div>
+                                )}
                                 
                                 <CardHeader className="pb-8">
                                     <div className="flex items-center gap-3 mb-4">
@@ -137,26 +148,38 @@ export default function Index({ plans, currentPlan }: Props) {
                                     </div>
                                 </CardContent>
 
-                                <CardFooter className="pt-0">
+                                <CardFooter className="pt-0 flex-col items-stretch gap-2">
                                     <Button
                                         size="lg"
-                                        variant={currentPlan?.id === plan.id ? "outline" : "default"}
+                                        variant={currentPlan?.id === plan.id || activeSubscription?.pending_plan_id === plan.id ? "outline" : "default"}
                                         className={`w-full font-bold h-12 ${
-                                            currentPlan?.id === plan.id 
+                                            currentPlan?.id === plan.id || activeSubscription?.pending_plan_id === plan.id
                                                 ? 'bg-transparent border-primary/50 text-primary cursor-default' 
                                                 : 'shadow-lg hover:shadow-primary/20 transition-all active:scale-[0.98]'
                                         }`}
-                                        disabled={currentPlan?.id === plan.id || processing}
+                                        disabled={currentPlan?.id === plan.id || activeSubscription?.pending_plan_id === plan.id || processing}
                                         onClick={() => handleSelectPlan(plan)}
                                     >
                                         {currentPlan?.id === plan.id ? (
                                             <span className="flex items-center gap-2">
                                                 <Check className="h-4 w-4" /> Active Plan
                                             </span>
+                                        ) : activeSubscription?.pending_plan_id === plan.id ? (
+                                            <span className="flex items-center gap-2 text-amber-600">
+                                                <Clock className="h-4 w-4" /> Scheduled
+                                            </span>
                                         ) : (
-                                            plan.price === "0.00" ? 'Stay on Basic' : 'Upgrade to ' + plan.name
+                                            parseFloat(plan.price) < parseFloat(currentPlan?.price || '0') 
+                                                ? 'Downgrade to ' + plan.name
+                                                : plan.price === "0.00" ? 'Stay on Basic' : 'Upgrade to ' + plan.name
                                         )}
                                     </Button>
+                                    
+                                    {activeSubscription?.pending_plan_id === plan.id && (
+                                        <p className="text-xs text-center text-amber-600/80 font-medium">
+                                            Takes effect on {activeSubscription.billing_cycle_ends_at}
+                                        </p>
+                                    )}
                                 </CardFooter>
                             </Card>
                         ))}
@@ -194,10 +217,16 @@ export default function Index({ plans, currentPlan }: Props) {
                             <span className="text-muted-foreground">New Monthly Price:</span>
                             <span className="font-bold text-foreground">${confirmingPlan?.price}</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground leading-relaxed">
-                            Note: A new invoice will be generated immediately for the <strong>{confirmingPlan?.name}</strong> plan. 
-                            Your next automated billing cycle will then continue monthly from today.
-                        </p>
+                        {confirmingPlan && currentPlan && parseFloat(confirmingPlan.price) < parseFloat(currentPlan.price) ? (
+                            <p className="text-[11px] text-amber-600/90 leading-relaxed font-medium">
+                                Note: Since this is a downgrade, your current {currentPlan.name} features will remain active until the end of your billing cycle. You will be switched to the {confirmingPlan.name} plan automatically on your next billing date.
+                            </p>
+                        ) : (
+                            <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                Note: A new invoice will be generated immediately for the <strong>{confirmingPlan?.name}</strong> plan. 
+                                Your next automated billing cycle will then continue monthly from today.
+                            </p>
+                        )}
                     </div>
 
                     <DialogFooter className="flex sm:justify-between gap-2">
