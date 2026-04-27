@@ -51,4 +51,25 @@ class Invoice extends Model
     {
         return $this->hasMany(InvoiceItem::class);
     }
+
+    public function scopeFilter($query, array $filters)
+    {
+        $query->when($filters['search'] ?? null, function ($query, $search) {
+            $query->where(function ($query) use ($search) {
+                $query->where('invoice_number', 'like', '%' . $search . '%')
+                      ->orWhereHas('client', function ($query) use ($search) {
+                          $query->where('client_name', 'like', '%' . $search . '%')
+                                ->orWhere('business_name', 'like', '%' . $search . '%');
+                      });
+            });
+        })->when($filters['status'] ?? null, function ($query, $status) {
+            if ($status !== 'all') {
+                $query->where('status', $status);
+            }
+        })->when($filters['client_id'] ?? null, function ($query, $client_id) {
+            if ($client_id !== 'all') {
+                $query->where('client_id', $client_id);
+            }
+        });
+    }
 }

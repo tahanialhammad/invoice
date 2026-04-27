@@ -1,11 +1,13 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, Deferred } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import invoiceRoutes from '@/routes/invoices';
 import AppLayout from '@/layouts/app-layout';
 import InvoiceTable from './partials/InvoiceTable';
+import FilterBar from './partials/FilterBar';
 import { InvoiceStatus } from './partials/InvoiceStatusBadge';
+import { Loader2 } from 'lucide-react';
 
 interface Client {
     client_name: string;
@@ -21,7 +23,13 @@ interface Invoice {
     issue_date: string;
 }
 
-export default function Index({ invoices }: { invoices: Invoice[] }) {
+interface IndexProps {
+    invoices?: Invoice[];
+    clients?: { id: number; client_name: string }[];
+    filters: { search?: string; status?: string; client_id?: string };
+}
+
+export default function Index({ invoices, clients, filters }: IndexProps) {
     return (
         <>
             <Head title="Invoices" />
@@ -40,7 +48,18 @@ export default function Index({ invoices }: { invoices: Invoice[] }) {
                     </Link>
                 </div>
 
-                <InvoiceTable invoices={invoices} />
+                <FilterBar filters={filters} clients={clients || []} />
+
+                <Deferred data={['invoices', 'clients']} fallback={
+                    <div className="flex h-64 items-center justify-center rounded-xl border border-sidebar-border/70 bg-sidebar/50">
+                        <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                            <Loader2 className="size-8 animate-spin text-primary" />
+                            <p className="text-sm font-medium">Loading invoices...</p>
+                        </div>
+                    </div>
+                }>
+                    <InvoiceTable invoices={invoices || []} />
+                </Deferred>
             </div>
         </>
     );

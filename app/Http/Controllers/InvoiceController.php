@@ -23,10 +23,20 @@ class InvoiceController extends Controller
             ->name("invoice-{$invoice->invoice_number}.pdf");
     }
 
-    public function index()
+    public function index(Request $request)
     {
+        $filters = $request->only(['search', 'status', 'client_id']);
+
         return Inertia::render('invoices/index', [
-            'invoices' => auth()->user()->invoices()->with('client')->latest()->get()
+            'filters' => $filters,
+            'clients' => Inertia::defer(fn () => auth()->user()->clients()->select('id', 'client_name')->orderBy('client_name')->get()),
+            'invoices' => Inertia::defer(fn () => 
+                auth()->user()->invoices()
+                    ->with('client')
+                    ->filter($filters)
+                    ->latest()
+                    ->get()
+            )
         ]);
     }
 
