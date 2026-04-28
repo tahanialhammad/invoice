@@ -1,5 +1,6 @@
 import { Link, usePage } from '@inertiajs/react';
 import { dashboard, login, register } from '@/routes';
+import AppLogoIcon from '@/components/app-logo-icon';
 
 interface SiteHeaderProps {
     canRegister?: boolean;
@@ -12,8 +13,8 @@ export default function SiteHeader({ canRegister = true }: SiteHeaderProps) {
         <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-950/80">
             <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 lg:px-8">
                 <div className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white uppercase">
-                        IP
+                    <div className="flex h-9 w-9 items-center justify-center">
+                        <AppLogoIcon className="size-9 fill-current text-black dark:text-white" />
                     </div>
                     <span className="text-xl font-bold tracking-tight">InvoicePro</span>
                 </div>
