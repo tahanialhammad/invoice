@@ -11,6 +11,9 @@ use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\SubscriptionUpgradedMail;
+use App\Mail\SubscriptionDowngradedMail;
 
 class SubscriptionController extends Controller
 {
@@ -66,6 +69,8 @@ class SubscriptionController extends Controller
                         'pending_plan_id' => $newPlan->id,
                         'billing_cycle_ends_at' => $cycleEndsAt,
                     ]);
+
+                    Mail::to($user->email)->send(new SubscriptionDowngradedMail($user, $newPlan, $cycleEndsAt));
 
                     return redirect()->route('plans.index')
                         ->with('success', "Your plan will change to {$newPlan->name} on " . $cycleEndsAt->format('M d, Y') . ".");
@@ -145,9 +150,16 @@ class SubscriptionController extends Controller
                 ]);
 
                 // Generate pro-rated invoice for new plan
+                $newProRatedAmount = 0;
                 if ($newPlan->price > 0) {
+                    $nextAnniversary = $today->copy()->addMonth();
+                    $remainingDays   = max(1, $today->diffInDays($nextAnniversary));
+                    $newProRatedAmount  = round(($remainingDays / $daysInMonth) * $newPlan->price, 2);
+                    
                     $this->generateProRatedInvoice($user, $newPlan, $admin, $today, $daysInMonth);
                 }
+
+                Mail::to($user->email)->send(new SubscriptionUpgradedMail($user, $newPlan, $newProRatedAmount));
 
                 return redirect()->route('plans.index')
                     ->with('success', "Successfully switched to the {$newPlan->name} plan.");

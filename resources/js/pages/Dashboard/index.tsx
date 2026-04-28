@@ -1,5 +1,7 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { dashboard } from '@/routes';
+import profile from '@/routes/profile';
+import { AlertCircle } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import {
     Chart as ChartJS,
@@ -74,6 +76,26 @@ export default function Dashboard({ stats, charts }: { stats: DashboardStats; ch
                     name={auth.user.name} 
                     isAdmin={auth.user.is_admin} 
                 />
+
+                {!auth.isProfileComplete && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                                <AlertCircle className="size-5" />
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-semibold text-blue-900">Your profile is incomplete!</h4>
+                                <p className="text-xs text-blue-700">Add your company logo and VAT number to personalize your invoices.</p>
+                            </div>
+                        </div>
+                        <Link 
+                            href={profile.edit().url} 
+                            className="text-xs font-bold text-blue-700 hover:text-blue-800 underline uppercase tracking-wider"
+                        >
+                            Complete Setup
+                        </Link>
+                    </div>
+                )}
 
                 <StatsGrid>
                     <RevenueCard amount={stats.total_revenue_this_year} />
