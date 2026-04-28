@@ -1,24 +1,6 @@
-import { AppContent } from '@/components/app-content';
-import { AppHeader } from '@/components/app-header';
-import { AppShell } from '@/components/app-shell';
-import type { AppLayoutProps } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
-import { dashboard, login, register } from '@/routes';
-import {
-    FileText,
-    Users,
-    CreditCard,
-    BarChart3,
-    CheckCircle2,
-    ArrowRight,
-    Github,
-    Twitter
-} from 'lucide-react';
+import { Github, Twitter } from 'lucide-react';
 
-export default function SiteFooterLayout({
-    children,
-    breadcrumbs,
-}: AppLayoutProps) {
+export default function SiteFooter() {
     return (
         <footer className="bg-white border-t border-slate-200 dark:bg-slate-950 dark:border-slate-800">
             <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
