@@ -26,6 +26,7 @@ export type Auth = {
     features: {
         can_create_recurring_invoices: boolean;
     };
+    isProfileComplete: boolean;
 };
 
 export type TwoFactorSetupData = {

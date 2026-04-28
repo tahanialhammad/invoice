@@ -42,6 +42,11 @@ class InvoiceController extends Controller
 
     public function create()
     {
+        if (!auth()->user()->isProfileComplete()) {
+            return redirect()->route('profile.edit')
+                ->with('warning', 'Please complete your company details to start issuing invoices.');
+        }
+
         return Inertia::render('invoices/create', [
             'clients' => auth()->user()->clients()->orderBy('client_name')->get()
         ]);

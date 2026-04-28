@@ -104,4 +104,11 @@ class User extends Authenticatable
 
         return false;
     }
+
+    public function isProfileComplete(): bool
+    {
+        return !empty($this->company_name) && 
+               !empty($this->company_address) && 
+               !empty($this->company_phone);
+    }
 }
