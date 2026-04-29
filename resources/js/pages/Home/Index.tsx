@@ -5,11 +5,23 @@ import VisualAsset from './Partials/VisualAsset';
 import Features from './Partials/Features';
 import Workflow from './Partials/Workflow';
 import CTASection from './Partials/CTASection';
+import PricingSection from './Partials/PricingSection';
+
+interface Plan {
+    id: number;
+    name: string;
+    price: string | number;
+    description: string;
+    features: string[];
+    slug: string;
+}
 
 export default function Home({
     canRegister = true,
+    plans = [],
 }: {
     canRegister?: boolean;
+    plans?: Plan[];
 }) {
     const { auth } = usePage().props as any;
 
@@ -19,6 +31,7 @@ export default function Home({
             <VisualAsset />
             <Features />
             <Workflow />
+            <PricingSection plans={plans} />
             <CTASection canRegister={canRegister} />
         </SiteLayout>
     );
