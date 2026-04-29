@@ -18,4 +18,7 @@ If you have any questions regarding this invoice, please don't hesitate to reach
 
 Best regards,  
 {{ $invoice->user->company_name ?? $invoice->user->name }}
+<x-slot:subcopy>
+@include('emails.company-info', ['user' => $invoice->user])
+</x-slot:subcopy>
 </x-mail::message>

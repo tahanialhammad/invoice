@@ -19,4 +19,8 @@ Thank you for your business!
 
 Regards,<br>
 {{ config('app.name') }}
+
+<x-slot:subcopy>
+@include('emails.company-info', ['user' => $invoice->user])
+</x-slot:subcopy>
 </x-mail::message>
