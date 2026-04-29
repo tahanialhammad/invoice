@@ -6,13 +6,22 @@ import { CreditCard, Settings2, ShieldCheck } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import adminPlans from '@/routes/admin/plans';
 
+interface Feature {
+    id: number;
+    name: string;
+    code: string;
+    pivot: {
+        value: string;
+    };
+}
+
 interface Plan {
     id: number;
     name: string;
     slug: string;
     price: string | number;
     description: string;
-    features: string[];
+    features: Feature[];
 }
 
 interface Props {
@@ -50,48 +59,51 @@ export default function AdminPlansIndex({ plans }: Props) {
 
 function PlanCard({ plan }: { plan: Plan }) {
     return (
-        <Card className="relative transition-all duration-300 hover:border-primary/50 hover:shadow-md">
+        <Card className="group relative transition-all duration-300 hover:border-blue-500/50 hover:shadow-xl cursor-pointer overflow-hidden border-slate-200 dark:border-slate-800">
+            <Link href={adminPlans.edit(plan.id).url} className="absolute inset-0 z-10" />
             <CardHeader className="pb-4">
                 <div className="flex justify-between items-start">
-                    <div className="p-2 rounded-lg bg-primary/10 mb-2">
-                        <CreditCard className="h-5 w-5 text-primary" />
+                    <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-900/20 mb-2 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                        <CreditCard className="h-5 w-5 text-blue-600 group-hover:text-white" />
                     </div>
-                    <Badge variant="outline" className="uppercase text-[10px] tracking-widest">
+                    <Badge variant="outline" className="uppercase text-[10px] tracking-widest font-bold border-slate-300 dark:border-slate-700">
                         {plan.slug}
                     </Badge>
                 </div>
-                <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
-                <CardDescription className="line-clamp-2 min-h-[2.5rem]">
+                <CardTitle className="text-xl font-bold tracking-tight">{plan.name}</CardTitle>
+                <CardDescription className="line-clamp-2 min-h-[2.5rem] text-slate-500 dark:text-slate-400">
                     {plan.description}
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="flex items-baseline gap-1 mb-4">
-                    <span className="text-2xl font-bold text-foreground">${plan.price}</span>
-                    <span className="text-sm text-muted-foreground">/ month</span>
+                <div className="flex items-baseline gap-1 mb-6">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white">€{plan.price}</span>
+                    <span className="text-sm font-medium text-slate-500 dark:text-slate-400">/ month</span>
                 </div>
                 
-                <div className="space-y-2 mb-6">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Active Features</p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {plan.features.map((feature, i) => (
-                            <Badge key={i} variant="secondary" className="text-[10px] py-0 px-2 font-normal">
-                                {feature.replace(/_/g, ' ')}
+                <div className="space-y-3 mb-8">
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-400 dark:text-slate-500">Tier Features</p>
+                    <div className="flex flex-wrap gap-2">
+                        {plan.features.map((feature) => (
+                            <Badge key={feature.id} variant="secondary" className="text-[10px] py-0.5 px-2.5 font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-none">
+                                {feature.name}
                             </Badge>
                         ))}
                     </div>
                 </div>
 
-                <Button 
-                    asChild
-                    className="w-full gap-2 font-bold" 
-                    variant="outline"
-                >
-                    <Link href={adminPlans.edit(plan.id).url}>
-                        <Settings2 className="h-4 w-4" />
-                        Configure Plan
-                    </Link>
-                </Button>
+                <div className="relative z-20">
+                    <Button 
+                        asChild
+                        className="w-full gap-2 font-bold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all duration-300 shadow-sm" 
+                        variant="outline"
+                    >
+                        <Link href={adminPlans.edit(plan.id).url}>
+                            <Settings2 className="h-4 w-4" />
+                            Configure Tier
+                        </Link>
+                    </Button>
+                </div>
             </CardContent>
         </Card>
     );

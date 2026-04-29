@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Feature;
 use App\Models\Plan;
 use Illuminate\Database\Seeder;
 
@@ -12,38 +13,57 @@ class PlanSeeder extends Seeder
      */
     public function run(): void
     {
-        Plan::updateOrCreate(['slug' => 'basic'], [
+        // 1. Create Features
+        $features = [
+            ['name' => 'Monthly Invoices', 'code' => 'invoice_limit', 'type' => 'limit'],
+            ['name' => 'Client Management', 'code' => 'client_limit', 'type' => 'limit'],
+            ['name' => 'Recurring Invoices', 'code' => 'create_recurring_invoices', 'type' => 'boolean'],
+            ['name' => 'Advanced Reports', 'code' => 'advanced_reports', 'type' => 'boolean'],
+            ['name' => 'Team Management', 'code' => 'team_management', 'type' => 'boolean'],
+        ];
+
+        foreach ($features as $f) {
+            Feature::updateOrCreate(['code' => $f['code']], $f);
+        }
+
+        // 2. Create Plans
+        
+        // Basic Plan
+        $basic = Plan::updateOrCreate(['slug' => 'basic'], [
             'name' => 'Basic',
             'price' => 0.00,
             'description' => 'Perfect for individuals getting started.',
-            'features' => [
-                'max_5_clients',
-                'create_one_time_invoices',
-            ],
+        ]);
+        $basic->features()->sync([
+            Feature::where('code', 'invoice_limit')->first()->id => ['value' => '5'],
+            Feature::where('code', 'client_limit')->first()->id => ['value' => '5'],
+            Feature::where('code', 'create_recurring_invoices')->first()->id => ['value' => 'false'],
         ]);
 
-        Plan::updateOrCreate(['slug' => 'business'], [
+        // Business Plan
+        $business = Plan::updateOrCreate(['slug' => 'business'], [
             'name' => 'Business',
             'price' => 19.00,
             'description' => 'For growing businesses. Includes recurring invoices.',
-            'features' => [
-                'max_30_clients',
-                'create_one_time_invoices',
-                'create_recurring_invoices',
-            ],
+        ]);
+        $business->features()->sync([
+            Feature::where('code', 'invoice_limit')->first()->id => ['value' => 'unlimited'],
+            Feature::where('code', 'client_limit')->first()->id => ['value' => '30'],
+            Feature::where('code', 'create_recurring_invoices')->first()->id => ['value' => 'true'],
         ]);
 
-        Plan::updateOrCreate(['slug' => 'premium'], [
+        // Premium Plan
+        $premium = Plan::updateOrCreate(['slug' => 'premium'], [
             'name' => 'Premium',
             'price' => 49.00,
             'description' => 'Full access for large agencies.',
-            'features' => [
-                'max_unlimited_clients',
-                'create_one_time_invoices',
-                'create_recurring_invoices',
-                'advanced_reports',
-                'team_management',
-            ],
+        ]);
+        $premium->features()->sync([
+            Feature::where('code', 'invoice_limit')->first()->id => ['value' => 'unlimited'],
+            Feature::where('code', 'client_limit')->first()->id => ['value' => 'unlimited'],
+            Feature::where('code', 'create_recurring_invoices')->first()->id => ['value' => 'true'],
+            Feature::where('code', 'advanced_reports')->first()->id => ['value' => 'true'],
+            Feature::where('code', 'team_management')->first()->id => ['value' => 'true'],
         ]);
     }
 }

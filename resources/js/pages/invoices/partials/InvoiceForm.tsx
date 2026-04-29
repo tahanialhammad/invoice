@@ -115,7 +115,7 @@ export default function InvoiceForm({
                         <div className="space-y-2">
                             <Label htmlFor="invoice_type" className="flex items-center gap-2">
                                 Invoice Type
-                                {!usePage().props.auth.features.can_create_recurring_invoices && (
+                                {!usePage().props.auth.features.create_recurring_invoices && (
                                     <Badge variant="outline" className="text-[10px] py-0 h-4 bg-yellow-500/10 text-yellow-600 border-yellow-200">
                                         Pro Feature
                                     </Badge>
@@ -128,8 +128,8 @@ export default function InvoiceForm({
                                 onChange={(e) => setData('is_recurring', e.target.value === 'recurring')}
                             >
                                 <option value="one_time">One-Time</option>
-                                <option value="recurring" disabled={!usePage().props.auth.features.can_create_recurring_invoices}>
-                                    Recurring {!usePage().props.auth.features.can_create_recurring_invoices ? '(Upgrade Required)' : ''}
+                                <option value="recurring" disabled={!usePage().props.auth.features.create_recurring_invoices}>
+                                    Recurring {!usePage().props.auth.features.create_recurring_invoices ? '(Upgrade Required)' : ''}
                                 </option>
                             </select>
                         </div>

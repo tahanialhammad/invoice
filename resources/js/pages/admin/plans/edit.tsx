@@ -1,194 +1,233 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Trash2, Save, ArrowLeft, Settings2 } from 'lucide-react';
-import AppLayout from '@/layouts/app-layout';
-import { toast } from 'sonner';
-import { useState } from 'react';
-import adminPlans from '@/routes/admin/plans';
+import { Head, useForm } from "@inertiajs/react";
+import AppLayout from "@/layouts/app-layout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Save, ArrowLeft, CheckCircle2, Shield } from "lucide-react";
+import { Link } from "@inertiajs/react";
+import adminPlans from "@/routes/admin/plans";
+import { toast } from "sonner";
+
+interface Feature {
+    id: number;
+    name: string;
+    code: string;
+    type: 'limit' | 'boolean';
+    pivot?: {
+        value: string;
+    };
+}
 
 interface Plan {
     id: number;
     name: string;
     slug: string;
-    price: string | number;
-    description: string;
-    features: string[];
+    price: string;
+    description: string | null;
+    features: Feature[];
 }
 
-interface Props {
+interface EditProps {
     plan: Plan;
+    allFeatures: Feature[];
 }
 
-export default function EditPlan({ plan }: Props) {
+export default function Edit({ plan, allFeatures }: EditProps) {
+    // Initial state: Object keyed by feature ID
+    const initialFeatures = allFeatures.reduce((acc, f) => {
+        const active = plan.features.find(pf => pf.id === f.id);
+        acc[f.id] = {
+            enabled: !!active,
+            value: active ? active.pivot?.value : (f.type === 'boolean' ? 'false' : ''),
+            name: f.name,
+            code: f.code,
+            type: f.type
+        };
+        return acc;
+    }, {} as Record<number, any>);
+
     const { data, setData, put, processing, errors } = useForm({
         price: plan.price,
         description: plan.description || '',
-        features: [...plan.features],
+        features: initialFeatures,
     });
 
-    const [newFeature, setNewFeature] = useState('');
-
-    const addFeature = () => {
-        if (!newFeature.trim()) return;
-        if (data.features.includes(newFeature.trim())) {
-            toast.error('Feature already exists');
-            return;
-        }
-        setData('features', [...data.features, newFeature.trim()]);
-        setNewFeature('');
+    const toggleFeature = (featureId: number, enabled: boolean) => {
+        setData('features', {
+            ...data.features,
+            [featureId]: {
+                ...data.features[featureId],
+                enabled,
+                value: data.features[featureId].type === 'boolean' 
+                    ? (enabled ? 'true' : 'false') 
+                    : data.features[featureId].value
+            }
+        });
     };
 
-    const removeFeature = (index: number) => {
-        const updated = [...data.features];
-        updated.splice(index, 1);
-        setData('features', updated);
+    const updateValue = (featureId: number, value: string) => {
+        setData('features', {
+            ...data.features,
+            [featureId]: {
+                ...data.features[featureId],
+                value
+            }
+        });
     };
 
-    const submit = (e: React.SyntheticEvent<HTMLFormElement>) => {
+    const submit = (e: React.FormEvent) => {
         e.preventDefault();
         put(adminPlans.update(plan.id).url, {
             onSuccess: () => {
                 toast.success(`Plan '${plan.name}' updated successfully`);
             },
             onError: (err) => {
-                console.error('Update failed:', err);
-                toast.error('Failed to update plan. Please check inputs.');
-            },
+                console.error(err);
+                toast.error("Failed to update plan. Please check the errors.");
+            }
         });
     };
 
     return (
         <>
             <Head title={`Edit Plan: ${plan.name}`} />
-            <div className="flex h-full flex-1 flex-col gap-6 p-6 max-w-4xl mx-auto w-full">
-                <div className="flex items-center gap-4 mb-2">
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => window.history.back()}
-                        className="rounded-full"
-                    >
-                        <ArrowLeft className="h-5 w-5" />
-                    </Button>
+            <div className="max-w-4xl mx-auto py-10 px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Edit Plan: {plan.name}</h1>
-                        <p className="text-muted-foreground">Modify pricing and features for the {plan.slug} tier.</p>
+                        <Link
+                            href={adminPlans.manage().url}
+                            className="flex items-center text-sm text-slate-500 hover:text-slate-700 transition mb-2"
+                        >
+                            <ArrowLeft className="mr-1 h-4 w-4" />
+                            Back to Plans
+                        </Link>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                            {plan.name}
+                            <Badge variant="outline" className="text-blue-600 border-blue-200 bg-blue-50">
+                                {plan.slug.toUpperCase()}
+                            </Badge>
+                        </h1>
                     </div>
                 </div>
 
-                <Card className="border-2 shadow-sm overflow-hidden">
-                    <CardHeader className="bg-muted/30 border-b">
-                        <CardTitle>Plan Details</CardTitle>
-                        <CardDescription>
-                            Changes are applied immediately to the system.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-8">
-                        <form onSubmit={submit} className="space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {/* Basic Info */}
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="price">Monthly Price ($)</Label>
-                                        <div className="relative">
-                                            <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
-                                            <Input 
-                                                id="price" 
-                                                type="number" 
-                                                step="0.01" 
-                                                className="pl-7"
-                                                value={data.price} 
-                                                onChange={e => setData('price', e.target.value)} 
-                                            />
-                                        </div>
-                                        {errors.price && <p className="text-xs text-red-500 font-medium">{errors.price}</p>}
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="description">Plan Description</Label>
-                                        <Textarea 
-                                            id="description" 
-                                            rows={5}
-                                            className="resize-none"
-                                            value={data.description} 
-                                            onChange={e => setData('description', e.target.value)} 
-                                            placeholder="Describe what users get with this plan..."
-                                        />
-                                        {errors.description && <p className="text-xs text-red-500 font-medium">{errors.description}</p>}
-                                    </div>
+                <form onSubmit={submit} className="space-y-8">
+                    {/* General Information */}
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
+                                <Shield className="h-5 w-5 text-blue-600" />
+                                Plan Details
+                            </h2>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="price">Monthly Price (€)</Label>
+                                    <Input
+                                        id="price"
+                                        type="number"
+                                        step="0.01"
+                                        value={data.price}
+                                        onChange={e => setData('price', e.target.value)}
+                                        placeholder="0.00"
+                                    />
+                                    {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="description">Description</Label>
+                                <Textarea
+                                    id="description"
+                                    value={data.description}
+                                    onChange={e => setData('description', e.target.value)}
+                                    placeholder="Enter plan description..."
+                                    rows={3}
+                                />
+                                {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
+                            </div>
+                        </div>
+                    </div>
 
-                                {/* Features List */}
-                                <div className="space-y-4">
-                                    <Label>Plan Capabilities (Features)</Label>
-                                    <div className="flex gap-2">
-                                        <Input 
-                                            value={newFeature} 
-                                            onChange={e => setNewFeature(e.target.value)}
-                                            placeholder="e.g. create_recurring_invoices"
-                                            onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addFeature())}
-                                        />
-                                        <Button type="button" onClick={addFeature} variant="secondary">
-                                            Add
-                                        </Button>
-                                    </div>
-                                    
-                                    <div className="bg-muted/30 rounded-xl p-4 border border-dashed border-muted-foreground/30 min-h-[200px] space-y-2">
-                                        {data.features.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center h-full text-muted-foreground/50 py-8">
-                                                <Settings2 className="h-8 w-8 mb-2 opacity-20" />
-                                                <p className="text-xs">No features added yet.</p>
+                    {/* Features Management */}
+                    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+                        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                            <h2 className="text-lg font-semibold flex items-center gap-2">
+                                <CheckCircle2 className="h-5 w-5 text-blue-600" />
+                                Feature Configuration
+                            </h2>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {Object.entries(data.features).map(([id, feature]: [string, any]) => {
+                                const featureId = parseInt(id);
+                                return (
+                                    <div key={id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="space-y-1">
+                                            <div className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                                                {feature.name}
+                                                <code className="text-xs bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">
+                                                    {feature.code}
+                                                </code>
                                             </div>
-                                        ) : (
-                                            data.features.map((feature, i) => (
-                                                <div key={i} className="flex justify-between items-center bg-background p-2 px-3 rounded-lg border group transition-all">
-                                                    <code className="text-xs font-mono">{feature}</code>
-                                                    <Button 
-                                                        type="button" 
-                                                        variant="ghost" 
-                                                        size="icon" 
-                                                        className="h-8 w-8 text-muted-foreground hover:text-red-500"
-                                                        onClick={() => removeFeature(i)}
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                    {errors.features && <p className="text-xs text-red-500 font-medium">{errors.features}</p>}
-                                </div>
-                            </div>
+                                            <p className="text-sm text-slate-500">
+                                                {feature.type === 'limit' ? 'Numeric limit or "unlimited"' : 'Yes/No toggle'}
+                                            </p>
+                                        </div>
 
-                            <div className="flex justify-end gap-3 pt-6 border-t">
-                                <Button type="button" variant="ghost" onClick={() => window.history.back()}>
-                                    Discard Changes
-                                </Button>
-                                <Button type="submit" className="gap-2 px-8 font-bold" disabled={processing}>
-                                    {processing ? 'Saving...' : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save All Changes
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </form>
-                    </CardContent>
-                </Card>
+                                        <div className="flex items-center gap-6">
+                                            {feature.enabled && feature.type === 'limit' && (
+                                                <div className="flex items-center gap-2">
+                                                    <Label className="text-xs uppercase text-slate-400">Limit</Label>
+                                                    <Input
+                                                        className={`w-32 h-9 ${errors[`features.${id}.value` as keyof typeof errors] ? 'border-red-500' : ''}`}
+                                                        value={feature.value}
+                                                        onChange={e => updateValue(featureId, e.target.value)}
+                                                        placeholder="e.g. 50"
+                                                    />
+                                                </div>
+                                            )}
+                                            <div className="flex items-center space-x-2">
+                                                <Switch
+                                                    id={`feature-${id}`}
+                                                    checked={feature.enabled}
+                                                    onCheckedChange={(checked) => toggleFeature(featureId, checked)}
+                                                />
+                                                <Label htmlFor={`feature-${id}`}>
+                                                    {feature.enabled ? 'Enabled' : 'Disabled'}
+                                                </Label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {errors.error && (
+                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
+                            {errors.error}
+                        </div>
+                    )}
+
+                    <div className="flex justify-end pt-4">
+                        <Button type="submit" size="lg" className="bg-blue-600 hover:bg-blue-700" disabled={processing}>
+                            <Save className="mr-2 h-5 w-5" />
+                            {processing ? 'Saving Changes...' : 'Save Configuration'}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </>
     );
 }
 
-EditPlan.layout = (page: any) => (
+Edit.layout = (page: any) => (
     <AppLayout
         breadcrumbs={[
             { title: 'Admin', href: '#' },
-            { title: 'Plan Management', href: '/admin/plans' },
+            { title: 'Plan Management', href: adminPlans.manage().url },
             { title: 'Edit Plan', href: '#' },
         ]}
     >

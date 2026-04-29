@@ -25,6 +25,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Support\Facades\Gate::policy(\App\Models\Plan::class, \App\Policies\PlanPolicy::class);
+        \Illuminate\Support\Facades\Gate::define('admin-access', function ($user) {
+            return $user->is_admin;
+        });
 
         $this->configureDefaults();
         \App\Models\InvoiceItem::observe(\App\Observers\InvoiceItemObserver::class);

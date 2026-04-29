@@ -11,7 +11,6 @@ class Plan extends Model
         'slug',
         'price',
         'description',
-        'features', // JSON column
         'stripe_price_id',
     ];
 
@@ -22,17 +21,24 @@ class Plan extends Model
      */
     protected $casts = [
         'price' => 'decimal:2',
-        'features' => 'array', // Automatically cast JSON to PHP array
     ];
 
     /**
-     * Check if the plan has a specific feature.
-     *
-     * @param string $feature
-     * @return bool
+     * The features that belong to the plan.
      */
-    public function hasFeature(string $feature): bool
+    public function features()
     {
-        return in_array($feature, $this->features ?? []);
+        return $this->belongsToMany(Feature::class)
+            ->withPivot('value')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get a specific feature's value for this plan.
+     */
+    public function getFeatureValue(string $code)
+    {
+        $feature = $this->features()->where('code', $code)->first();
+        return $feature ? $feature->pivot->value : null;
     }
 }
