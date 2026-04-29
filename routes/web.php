@@ -5,7 +5,14 @@ use Laravel\Fortify\Features;
 
 Route::inertia('/', 'Home/Index', [
     'canRegister' => Features::enabled(Features::registration()),
+    'plans' => \App\Models\Plan::with('features')->get(),
 ])->name('home');
+
+Route::get('/pricing', function () {
+    return inertia('pricing/index', [
+        'plans' => \App\Models\Plan::with('features')->get(),
+    ]);
+})->name('pricing');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');

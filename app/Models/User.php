@@ -18,6 +18,9 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, TwoFactorAuthenticatable;
 
+    /** @var \App\Models\Plan|null In-memory cache for the active plan to avoid repeat queries. */
+    protected ?Plan $cachedPlan = null;
+
     /**
      * Get the attributes that should be cast.
      *
@@ -48,8 +51,12 @@ class User extends Authenticatable
         return $this->hasMany(Subscription::class);
     }
 
-    public function plan()
+    public function plan(): ?Plan
     {
+        if ($this->cachedPlan !== null) {
+            return $this->cachedPlan;
+        }
+
         $subscription = $this->subscriptions()
             ->where('status', 'active')
             ->where(function ($query) {
@@ -59,50 +66,78 @@ class User extends Authenticatable
             ->latest()
             ->first();
 
-        return $subscription ? $subscription->plan : Plan::where('slug', 'basic')->first();
+        $this->cachedPlan = $subscription
+            ? $subscription->plan->load('features')
+            : Plan::where('slug', 'basic')->with('features')->first();
+
+        return $this->cachedPlan;
     }
 
-    public function hasFeature($feature)
+    public function getFeatureValue(string $featureCode)
     {
-        if ($this->is_admin) return true;
-        
-        $plan = $this->plan();
-        if (!$plan) return false;
+        if ($this->is_admin) {
+            return 'unlimited';
+        }
 
-        return $plan->hasFeature($feature);
+        $plan = $this->plan();
+        if (!$plan) {
+            return null;
+        }
+
+        // Use the already-loaded features collection (no extra DB query)
+        $feature = $plan->features->firstWhere('code', $featureCode);
+
+        return $feature ? $feature->pivot->value : null;
     }
 
-    public function canAddClient(): bool
+    public function hasFeature(string $featureCode): bool
     {
         if ($this->is_admin) {
             return true;
         }
 
-        $plan = $this->plan();
-        if (!$plan) {
+        $value = $this->getFeatureValue($featureCode);
+
+        if ($value === null || $value === 'false') {
             return false;
         }
 
-        // Search the plan's JSON features array for the limit string
-        $features = collect($plan->features ?? []);
-        $limitFeature = $features->first(fn($feature) => str_starts_with($feature, 'max_') && str_ends_with($feature, '_clients'));
-
-        if (!$limitFeature) {
-            return false; // Safely deny if limit feature is missing
+        if ($value === 'unlimited' || $value === 'true') {
+            return true;
         }
 
-        // Extract the numeric limit or 'unlimited' keyword
-        if (preg_match('/max_(\d+|unlimited)_clients/', $limitFeature, $matches)) {
-            $limitValue = $matches[1];
+        return (bool) $value;
+    }
 
-            if ($limitValue === 'unlimited') {
-                return true;
-            }
-
-            return $this->clients()->count() < (int) $limitValue;
+    public function getFeatureLimit(string $featureCode)
+    {
+        if ($this->is_admin) {
+            return PHP_INT_MAX;
         }
 
-        return false;
+        $value = $this->getFeatureValue($featureCode);
+
+        if ($value === 'unlimited') {
+            return PHP_INT_MAX;
+        }
+
+        return is_numeric($value) ? (int)$value : 0;
+    }
+
+    public function canAddClient(): bool
+    {
+        return $this->clients()->count() < $this->getFeatureLimit('client_limit');
+    }
+
+    public function canAddInvoice(): bool
+    {
+        // Monthly invoice limit check
+        $currentMonthInvoices = $this->invoices()
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+            
+        return $currentMonthInvoices < $this->getFeatureLimit('invoice_limit');
     }
 
     public function isProfileComplete(): bool

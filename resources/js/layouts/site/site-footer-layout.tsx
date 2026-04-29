@@ -1,3 +1,5 @@
+import { Link } from '@inertiajs/react';
+import { home, pricing } from '@/routes';
 import { Github, Twitter } from 'lucide-react';
 
 export default function SiteFooter() {
@@ -24,6 +26,8 @@ export default function SiteFooter() {
                             &copy; {new Date().getFullYear()} InvoicePro Inc. All rights reserved.
                         </p>
                         <div className="flex gap-4 text-xs font-semibold text-slate-500 transition">
+                            <Link href={home().url} className="hover:text-blue-600">Home</Link>
+                            <Link href={pricing().url} className="hover:text-blue-600">Pricing</Link>
                             <a href="#" className="hover:text-blue-600">Privacy Policy</a>
                             <a href="#" className="hover:text-blue-600">Terms of Service</a>
                             <a href="#" className="hover:text-blue-600">Contact</a>

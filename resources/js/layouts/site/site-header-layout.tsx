@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login, register, home, pricing } from '@/routes';
 import AppLogoIcon from '@/components/app-logo-icon';
 
 interface SiteHeaderProps {
@@ -18,6 +18,28 @@ export default function SiteHeader({ canRegister = true }: SiteHeaderProps) {
                     </div>
                     <span className="text-xl font-bold tracking-tight">InvoicePro</span>
                 </div>
+                <nav className="hidden md:flex items-center gap-8">
+                    <Link
+                        href={home().url}
+                        className={`text-sm font-semibold transition ${
+                            usePage().component === 'Home/Index' 
+                            ? 'text-blue-600 dark:text-blue-500' 
+                            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                        }`}
+                    >
+                        Home
+                    </Link>
+                    <Link
+                        href={pricing().url}
+                        className={`text-sm font-semibold transition ${
+                            usePage().component === 'pricing/index' 
+                            ? 'text-blue-600 dark:text-blue-500' 
+                            : 'text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                        }`}
+                    >
+                        Pricing
+                    </Link>
+                </nav>
                 <nav className="flex items-center gap-4">
                     {auth?.user ? (
                         <Link

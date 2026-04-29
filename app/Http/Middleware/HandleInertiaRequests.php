@@ -35,17 +35,33 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $user = $request->user();
+
+        // Resolve plan ONCE per request to avoid multiple DB hits
+        $plan = $user ? $user->plan() : null;
+
+        // Build feature_flags: ['create_recurring_invoices' => 'true', 'client_limit' => '30', ...]
+        $featureFlags = [];
+        if ($plan) {
+            foreach ($plan->features as $feature) {
+                $featureFlags[$feature->code] = $feature->pivot->value;
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => $request->user(),
-                'plan' => $request->user() ? $request->user()->plan() : null,
-                'features' => $request->user() ? [
-                    'can_create_recurring_invoices' => $request->user()->hasFeature('create_recurring_invoices'),
-                ] : [],
-                'isProfileComplete' => $request->user() ? $request->user()->isProfileComplete() : false,
-                'overdueCount' => $request->user() ? $request->user()->invoices()->where('status', 'overdue')->count() : 0,
+                // Merge plan_id directly into the user object so auth.user.plan_id works in React
+                'user' => $user ? array_merge($user->toArray(), [
+                    'plan_id' => $plan?->id,
+                ]) : null,
+                'plan'    => $plan,
+                'plan_id' => $plan?->id,
+                // feature_flags keyed by feature code → pivot value string
+                'features' => $featureFlags,
+                'isProfileComplete' => $user ? $user->isProfileComplete() : false,
+                'overdueCount'      => $user ? $user->invoices()->where('status', 'overdue')->count() : 0,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
