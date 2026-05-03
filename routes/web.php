@@ -16,6 +16,7 @@ Route::get('/pricing', function () {
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::inertia('documentation', 'documentation/index')->name('documentation');
 
     Route::resource('clients', \App\Http\Controllers\ClientController::class);
     Route::get('invoices/{invoice}/pdf', [\App\Http\Controllers\InvoiceController::class, 'pdf'])->name('invoices.pdf');
