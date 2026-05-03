@@ -5,6 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { CreditCard, Settings2, ShieldCheck } from 'lucide-react';
 import AppLayout from '@/layouts/app-layout';
 import adminPlans from '@/routes/admin/plans';
+import SubscriberChart from './SubscriberChart';
+import FeatureManager from './FeatureManager';
 
 interface Feature {
     id: number;
@@ -24,11 +26,17 @@ interface Plan {
     features: Feature[];
 }
 
-interface Props {
-    plans: Plan[];
+interface ChartDataPoint {
+    name: string;
+    subscribers: number;
 }
 
-export default function AdminPlansIndex({ plans }: Props) {
+interface Props {
+    plans: Plan[];
+    chartData: ChartDataPoint[];
+}
+
+export default function AdminPlansIndex({ plans, chartData }: Props) {
     return (
         <>
             <Head title="Manage Subscription Plans" />
@@ -42,6 +50,12 @@ export default function AdminPlansIndex({ plans }: Props) {
                         <h1 className="text-3xl font-bold tracking-tight">Plan Management</h1>
                         <p className="text-muted-foreground">Manage SaaS pricing, descriptions, and feature capabilities.</p>
                     </div>
+                </div>
+
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <SubscriberChart data={chartData} />
+                    <FeatureManager />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

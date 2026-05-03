@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('admin/plans', [\App\Http\Controllers\PlanController::class, 'manage'])->name('admin.plans.manage');
         Route::get('admin/plans/{plan}/edit', [\App\Http\Controllers\PlanController::class, 'edit'])->name('admin.plans.edit');
         Route::put('admin/plans/{plan}', [\App\Http\Controllers\PlanController::class, 'update'])->name('admin.plans.update');
+        Route::post('admin/features', [\App\Http\Controllers\PlanController::class, 'storeFeature'])->name('admin.features.store');
 
         Route::get('admin/subscribers', [\App\Http\Controllers\AdminSubscriberController::class, 'index'])->name('admin.subscribers.index');
         Route::get('admin/billing', [\App\Http\Controllers\AdminBillingController::class, 'index'])->name('admin.billing.index');

@@ -28,9 +28,19 @@ class PlanController extends Controller
     {
         Gate::authorize('admin-access');
 
+        $chartData = Plan::all()->map(function ($plan) {
+            return [
+                'name' => $plan->name,
+                'subscribers' => \App\Models\Subscription::where('plan_id', $plan->id)
+                    ->where('status', 'active')
+                    ->count()
+            ];
+        });
+
         return Inertia::render('admin/plans/index', [
             'plans' => Plan::with('features')->get(),
             'features' => Feature::all(),
+            'chartData' => $chartData,
         ]);
     }
 
@@ -81,7 +91,9 @@ class PlanController extends Controller
 
             $plan->features()->sync($syncData);
 
-            return Redirect::route('admin.plans.manage')->with('success', "Plan '{$plan->name}' updated successfully.");
+            Inertia::flash('toast', ['type' => 'success', 'message' => "Plan '{$plan->name}' updated successfully."]);
+
+            return Redirect::route('admin.plans.manage');
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Failed to update plan', [
                 'error' => $e->getMessage(),
@@ -90,5 +102,27 @@ class PlanController extends Controller
             ]);
             return back()->withErrors(['error' => 'An error occurred while updating the plan: ' . $e->getMessage()]);
         }
+    }
+
+    /**
+     * Store a new feature in storage.
+     */
+    public function storeFeature(Request $request)
+    {
+        Gate::authorize('admin-access');
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|in:boolean,limit',
+            'description' => 'nullable|string'
+        ]);
+
+        $validated['code'] = \Illuminate\Support\Str::slug($validated['name']);
+
+        Feature::create($validated);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Feature '{$validated['name']}' created successfully."]);
+
+        return Redirect::route('admin.plans.manage');
     }
 }
